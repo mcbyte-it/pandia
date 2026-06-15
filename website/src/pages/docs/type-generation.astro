@@ -16,14 +16,14 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
       <tr><th>Target</th><th>Output</th></tr>
     </thead>
     <tbody>
-      <tr><td>TypeScript</td><td><code>export interface</code></td></tr>
-      <tr><td>Rust</td><td>Derived <code>struct</code></td></tr>
-      <tr><td>Go</td><td><code>struct</code> with JSON tags</td></tr>
+      <tr><td><a href="/json-to-typescript">TypeScript</a></td><td><code>export interface</code></td></tr>
+      <tr><td><a href="/json-to-rust">Rust</a></td><td>Derived <code>struct</code></td></tr>
+      <tr><td><a href="/json-to-go">Go</a></td><td><code>struct</code> with JSON tags</td></tr>
       <tr><td>Kotlin</td><td><code>data class</code></td></tr>
-      <tr><td>Python</td><td><code>@dataclass</code></td></tr>
+      <tr><td><a href="/json-to-python">Python</a></td><td><code>@dataclass</code></td></tr>
       <tr><td>PHP</td><td><code>final readonly class</code></td></tr>
       <tr><td>Java</td><td>POJO with getters and setters</td></tr>
-      <tr><td>Zod</td><td><code>z.object(...)</code> schema</td></tr>
+      <tr><td><a href="/json-to-zod">Zod</a></td><td><code>z.object(...)</code> schema</td></tr>
       <tr><td>JSON Schema</td><td>Draft 2020-12</td></tr>
     </tbody>
   </table>
@@ -58,5 +58,9 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
   </div>
 
   <h2>Next steps</h2>
+  <p>Per-language guides: <a href="/json-to-typescript">JSON to TypeScript</a>,
+  <a href="/json-to-rust">Rust</a>, <a href="/json-to-go">Go</a>,
+  <a href="/json-to-python">Python</a> and <a href="/json-to-zod">Zod</a> — or browse
+  <a href="/json-converter">all JSON converters</a>.</p>
   <p>Need the data itself out, not just its types? See <a href="/docs/export">Export</a>.</p>
 </DocsLayout>
