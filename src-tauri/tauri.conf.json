@@ -1,6 +1,6 @@
 {
   "productName": "Pandia",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "identifier": "com.pandia.ide",
   "build": {
     "beforeDevCommand": "npm run dev",
