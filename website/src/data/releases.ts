@@ -8,6 +8,20 @@ export interface Release {
 
 export const releases: Release[] = [
 	{
+		version: '1.0.2',
+		date: 'June 25, 2026',
+		tag: 'Stable',
+		tagKind: 'stable',
+		groups: [
+			{
+				label: 'Fixes',
+				items: [
+					'Traffic light buttons now properly close the app on MacOS without requiring a force quit.',
+				],
+			},
+		],
+	},
+	{
 		version: '1.0.1',
 		date: 'June 14, 2026',
 		tag: 'Stable',

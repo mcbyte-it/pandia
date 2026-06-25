@@ -231,36 +231,46 @@
 		void win
 			.onCloseRequested(async (event) => {
 				event.preventDefault();
-				await snapshotOpenTabs();
-				const dirtyTabs = tabStore.tabs.filter((t) => tabStore.statuses[t.id]?.dirty);
-				if (dirtyTabs.length > 0) {
-					const n = dirtyTabs.length;
-					const choice = await confirm.ask({
-						title: 'unsaved changes',
-						message:
-							n === 1
-								? `You have unsaved changes in ${basename(tabStore.contexts[dirtyTabs[0].id]?.sourceName ?? dirtyTabs[0].label)}.\nYour changes will be lost if you don't save them.`
-								: `You have unsaved changes in ${n} documents.\nYour changes will be lost if you don't save them.`,
-						primaryLabel: n === 1 ? 'save' : 'save all',
-						secondaryLabel: "don't save",
-					});
-					if (choice === 'cancel') return;
-					if (choice === 'primary') {
-						for (const t of dirtyTabs) {
-							const ctx = tabStore.contexts[t.id];
-							if (!ctx) continue;
-							tabStore.activate(t.id); // surface which doc the save-as dialog is for
-							const ok = await ctx.save();
-							if (!ok) return; // save failed (parse error / cancelled Save As) — abort quit
+				let shouldClose = true;
+				try {
+					await snapshotOpenTabs();
+					const dirtyTabs = tabStore.tabs.filter((t) => tabStore.statuses[t.id]?.dirty);
+					if (dirtyTabs.length > 0) {
+						const n = dirtyTabs.length;
+						const choice = await confirm.ask({
+							title: 'unsaved changes',
+							message:
+								n === 1
+									? `You have unsaved changes in ${basename(tabStore.contexts[dirtyTabs[0].id]?.sourceName ?? dirtyTabs[0].label)}.\nYour changes will be lost if you don't save them.`
+									: `You have unsaved changes in ${n} documents.\nYour changes will be lost if you don't save them.`,
+							primaryLabel: n === 1 ? 'save' : 'save all',
+							secondaryLabel: "don't save",
+						});
+						if (choice === 'cancel') {
+							shouldClose = false; // user backed out of quitting
+							return;
 						}
-					} else {
-						for (const t of dirtyTabs) {
-							const ctx = tabStore.contexts[t.id];
-							if (ctx) void docBackupClear(ctx.handle).catch(() => {});
+						if (choice === 'primary') {
+							for (const t of dirtyTabs) {
+								const ctx = tabStore.contexts[t.id];
+								if (!ctx) continue;
+								tabStore.activate(t.id); // surface which doc the save-as dialog is for
+								const ok = await ctx.save();
+								if (!ok) {
+									shouldClose = false; // save failed (parse error / cancelled Save As) — abort quit
+									return;
+								}
+							}
+						} else {
+							for (const t of dirtyTabs) {
+								const ctx = tabStore.contexts[t.id];
+								if (ctx) void docBackupClear(ctx.handle).catch(() => {});
+							}
 						}
 					}
+				} finally {
+					if (shouldClose) await win.destroy();
 				}
-				await win.destroy();
 			})
 			.then((u) => {
 				if (cancelled) u();
