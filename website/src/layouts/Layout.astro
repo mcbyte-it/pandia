@@ -5,6 +5,7 @@ import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 import '@fontsource/ibm-plex-mono/600.css';
 import '@fontsource/ibm-plex-mono/400-italic.css';
+import Analytics from '@vercel/analytics/astro';
 import { VERSION } from '../data/site';
 
 interface Props {
@@ -155,6 +156,7 @@ const jsonLdGraph = [
   </head>
   <body>
     <slot />
+    <Analytics />
     <script>
       // Sitewide reveal for .iv elements (home sections + landing pages). No-op on pages without them.
       const ivObserver = new IntersectionObserver((entries) => {
