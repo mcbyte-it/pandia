@@ -5,7 +5,7 @@ import { converters } from '../data/converters';
 const path = '/json-converter';
 
 const title = 'JSON Converter — Convert, Generate, Validate & Repair JSON';
-const description = 'A native JSON converter and toolkit: generate types for 9 languages, convert JSON to YAML, CSV and XML, and diff, validate or repair JSON — locally, offline, on files of any size. Free and open source.';
+const description = 'A native JSON converter & toolkit — generate types for 9 languages, convert JSON to YAML, CSV and XML, and diff, validate or repair. Local, offline, any file size.';
 
 const types = converters.filter((c) => c.kind === 'type');
 const formats = converters.filter((c) => c.kind === 'format');
@@ -82,6 +82,14 @@ const faqItems = [
           </div>
 
           <div class="docs-prose" style="margin-top:8px">
+            <h2>Convert JSON locally — at any size</h2>
+            <p>Online converters make you paste or upload your document to a server before they do anything.
+            That's a non-starter for JSON that holds secrets, customer data or a multi-gigabyte export — and most
+            web tools give up past a few megabytes anyway. Pandia runs every conversion on your machine: nothing
+            is uploaded, and there's no size limit on the file you open.</p>
+            <p>Each converter here is the same engine Pandia uses internally — deterministic output, idiomatic per
+            language, and fast enough to run on files far too large for a browser tab. Pick a target, open your
+            JSON, and copy or export the result.</p>
             <h2>Frequently asked questions</h2>
             {faqItems.map((f) => (
               <>

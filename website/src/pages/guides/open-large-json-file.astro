@@ -1,0 +1,117 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import { guidesBySlug } from '../../data/guides';
+
+const g = guidesBySlug['open-large-json-file'];
+const path = `/guides/${g.slug}`;
+
+const faqItems = [
+  {
+    q: 'What is the largest JSON file I can open?',
+    a: "With a native streaming viewer like Pandia there is no cap on opening or viewing — hundreds of MB or multiple GB open instantly, because only the slice on screen is ever loaded into memory.",
+  },
+  {
+    q: 'Can I open a large JSON file without uploading it?',
+    a: 'Yes. Pandia is a native desktop app, so the file is read from disk and processed locally — nothing is uploaded, which matters when the JSON holds secrets, tokens or personal data.',
+  },
+  {
+    q: 'Why does my browser crash on a big JSON file?',
+    a: "Browser-based viewers parse the entire file into the page's memory before rendering anything. Past a few hundred megabytes that exhausts the tab and it crashes. A native app that streams the file from disk avoids this entirely.",
+  },
+  {
+    q: 'How do I open a large JSON file on Windows, Mac or Linux?',
+    a: 'Download Pandia for your platform, then drag the file onto the window or open it with Ctrl/⌘ O. The same native approach handles multi-gigabyte files on all three operating systems.',
+  },
+];
+---
+<GuideLayout
+  title={g.title}
+  description={g.description}
+  path={path}
+  heading={g.cardTitle}
+  datePublished={g.datePublished}
+  faqItems={faqItems}
+>
+  <h1>How to open a large JSON file</h1>
+  <p class="lead">Multi-gigabyte JSON won't open in your editor or a browser tab? Here's why big files break
+  ordinary tools — and how to open and read them instantly on Windows, Mac and Linux.</p>
+
+  <p>You double-click a JSON file and your editor beachballs. You paste it into an online viewer and it says
+  <em>"file too large."</em> You open it in a browser tab and the tab crashes. The file isn't corrupt and your
+  machine isn't slow — the tools simply weren't built for the size.</p>
+
+  <h2>Why large JSON files break most tools</h2>
+  <p>Almost every JSON viewer, editor and online formatter does the same thing the moment you open a file: it
+  reads the <strong>entire</strong> document into memory and parses it into a tree before showing you a single
+  line. That's fine for a few kilobytes. But a 1 GB file needs several gigabytes of RAM once it's parsed into
+  objects, and the interface then has to lay out millions of nodes at once. The result is a frozen window, a
+  spinning cursor, or an outright crash.</p>
+  <p>Online tools have a second problem: to process your file, they have to <strong>upload</strong> it first —
+  which is slow for large files and a non-starter if the JSON contains anything sensitive.</p>
+
+  <h2>What actually works</h2>
+  <p>The fix is a tool that <strong>doesn't parse the whole file up front</strong>. Instead of loading
+  everything, it reads only the part you're looking at and streams the rest from disk. That's how you open a
+  multi-gigabyte file instantly instead of waiting — or crashing.</p>
+  <p><a href="/large-json-viewer">Pandia</a> is a free, native desktop app built for exactly this. At 10 MB and
+  up it switches to lazy, zero-copy slicing (powered by <code>sonic-rs</code>): it opens the file without parsing
+  the whole tree and only ever loads the slice on screen. A 2 GB file opens about as fast as a 2 KB one, and
+  there is <strong>no cap on opening or viewing</strong>.</p>
+
+  <h3>Open a large JSON file in three steps</h3>
+  <ol>
+    <li><strong>Download Pandia</strong> for <a href="/json-viewer-mac">macOS</a>,
+    <a href="/json-viewer-windows">Windows</a> or <a href="/json-viewer-linux">Linux</a> — it's free and open source.</li>
+    <li><strong>Drag your JSON onto the window</strong> (or press <kbd>⌘</kbd>/<kbd>Ctrl</kbd> <kbd>O</kbd>). It opens
+    immediately, however big it is.</li>
+    <li><strong>Explore it five ways</strong> — Tree, Code, Grid, Graph and Compare — and search across the whole
+    document, even when only a slice is in memory.</li>
+  </ol>
+
+  <h2>How the options compare</h2>
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Practical limit</th><th>Offline</th><th>Built for JSON structure</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Browser tab / online viewer</td><td>~a few hundred MB, then crashes; many cap at 500&nbsp;MB</td><td>No — uploads</td><td>Varies</td></tr>
+      <tr><td>General text editor</td><td>Opens the text but stalls on formatting &amp; folding</td><td>Yes</td><td>No tree or validation</td></tr>
+      <tr><td>Command line (<code>jq</code>)</td><td>Any size</td><td>Yes</td><td>Filtering, not browsing</td></tr>
+      <tr><td><strong>Pandia (native viewer)</strong></td><td><strong>No cap on opening — multi-GB</strong></td><td><strong>Yes — nothing uploaded</strong></td><td><strong>Five views + search</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Other ways to handle a huge JSON file</h2>
+  <p>Depending on what you need, a few alternatives are worth knowing:</p>
+  <ul>
+    <li><strong>Command line</strong> — <code>jq</code> is excellent for filtering and transforming JSON in a
+    pipeline, but it isn't a viewer; you can't scroll or explore the structure.</li>
+    <li><strong>Split the file</strong> — for newline-delimited JSON, <code>split</code> can break it into chunks,
+    but you lose the whole picture, and it doesn't help a single giant array or object.</li>
+    <li><strong>Stream it in code</strong> — libraries like <code>ijson</code> (Python) or <code>stream-json</code>
+    (Node) process a big file without loading it, but that's a programming task, not a way to just look at the data.</li>
+  </ul>
+  <p>If you simply need to <em>open, read, search and navigate</em> a large JSON file, a native streaming viewer
+  is the fastest path.</p>
+
+  <h2>A note on editing very large files</h2>
+  <div class="callout">
+    <p>Opening and viewing are uncapped at any size. A few <strong>whole-document</strong> operations — full edit,
+    export and schema validation — need the entire document in memory, so Pandia caps those at 200&nbsp;MB. You can
+    still open, browse, search and generate types on a multi-gigabyte file; only those specific whole-document
+    actions have the ceiling. <a href="/docs/performance">More on how large files work →</a></p>
+  </div>
+
+  <h2>Frequently asked questions</h2>
+  {faqItems.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+
+  <p class="lp-related">Related: <a href="/large-json-viewer">large JSON file viewer</a> ·
+  <a href="/guides/vscode-large-json">fix VS Code freezing on large JSON</a> ·
+  <a href="/guides/notepad-plus-plus-large-json">Notepad++ and large JSON</a> ·
+  <a href="/offline-json-editor">offline JSON editor</a>.</p>
+</GuideLayout>

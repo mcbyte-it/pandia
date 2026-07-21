@@ -1,0 +1,72 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/home/Nav.astro';
+import CtaBand from '../../components/home/CtaBand.astro';
+import Footer from '../../components/home/Footer.astro';
+import { breadcrumb } from '../../data/seo';
+import { guides } from '../../data/guides';
+
+const path = '/guides';
+const title = 'Pandia Guides — Working with Large & Difficult JSON';
+const description =
+  'Practical guides for opening, viewing and fixing large or awkward JSON files on Windows, Mac and Linux — how to open multi-gigabyte JSON, fix editors that freeze, and more.';
+
+const siteUrl = 'https://www.pandia.app';
+const collection = {
+  '@type': 'CollectionPage',
+  name: title,
+  description,
+  url: `${siteUrl}${path}`,
+  isPartOf: { '@id': `${siteUrl}/#website` },
+  hasPart: guides.map((g) => ({ '@type': 'Article', headline: g.title, url: `${siteUrl}/guides/${g.slug}` })),
+};
+---
+<Layout title={title} description={description} canonical={path} structuredData={[breadcrumb([{ name: 'Guides', path }]), collection]}>
+  <div class="pandia-page">
+    <div class="spine"></div>
+    <Nav />
+    <main>
+      <section class="block lp-hero">
+        <div class="wrap">
+          <span class="eyebrow iv"><span class="tick"></span>Guides</span>
+          <h1 class="iv">JSON, at <em>any size</em>.</h1>
+          <p class="lp-sub iv">Practical, no-nonsense guides for opening, viewing and fixing large or awkward JSON —
+          on Windows, Mac and Linux. From the team behind Pandia, the native JSON workbench.</p>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="wrap">
+          <div class="guide-grid">
+            {guides.map((g) => (
+              <a class="guide-card" href={`/guides/${g.slug}`}>
+                <span class="guide-card-t">{g.cardTitle}</span>
+                <span class="guide-card-d">{g.blurb}</span>
+                <span class="guide-card-go">Read the guide →</span>
+              </a>
+            ))}
+          </div>
+          <p class="lp-related" style="margin-top:34px">Related: <a href="/large-json-viewer">large JSON file viewer</a> ·
+          <a href="/offline-json-editor">offline JSON editor</a> · <a href="/docs/performance">how Pandia handles large files</a> ·
+          <a href="/download">download</a>.</p>
+        </div>
+      </section>
+
+      <CtaBand />
+    </main>
+    <Footer />
+  </div>
+</Layout>
+
+<style is:global>
+  .pandia-page .guide-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .pandia-page .guide-card {
+    display: flex; flex-direction: column; gap: 10px; padding: 26px 26px 22px; min-height: 180px;
+    border: 1px solid var(--page-rule); background: var(--page-card);
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .pandia-page .guide-card:hover { border-color: var(--accent-line); transform: translateY(-2px); }
+  .pandia-page .guide-card-t { font-family: var(--disp); font-size: 19px; font-weight: 700; color: var(--page-text); letter-spacing: -0.01em; line-height: 1.2; }
+  .pandia-page .guide-card-d { font-family: var(--disp); font-size: 14px; color: var(--page-dim); line-height: 1.55; }
+  .pandia-page .guide-card-go { margin-top: auto; font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.02em; }
+</style>

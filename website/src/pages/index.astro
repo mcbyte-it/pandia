@@ -13,7 +13,7 @@ import CtaBand from '../components/home/CtaBand.astro';
 import Footer from '../components/home/Footer.astro';
 import { faqs } from '../data/faq';
 
-const description = "Pandia is a fast, native JSON workbench. Open any file instantly — even multi-gigabyte — navigate five ways, generate types for 9 languages, compare, repair, and export. Rust + Tauri 2, offline and private, free and open source.";
+const description = "A fast, native JSON workbench. Open any file instantly — even multi-gigabyte — see it five ways, generate types, compare and export. Offline, private, free, open source.";
 
 const stripHtml = (h: string) =>
   h.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').trim();
@@ -44,7 +44,7 @@ const faqSchema = {
       <Views />
       <Capabilities />
       <HowItWorks />
-      <Scale />
+      <Scale learnMore="/large-json-viewer" />
       <Pillars />
       <Faq />
       <CtaBand />

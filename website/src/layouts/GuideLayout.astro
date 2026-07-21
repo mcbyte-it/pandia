@@ -1,0 +1,75 @@
+---
+import Layout from './Layout.astro';
+import Nav from '../components/home/Nav.astro';
+import CtaBand from '../components/home/CtaBand.astro';
+import Footer from '../components/home/Footer.astro';
+import { breadcrumb, faqSchema, type Faq } from '../data/seo';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  heading: string;
+  datePublished: string;
+  dateModified?: string;
+  faqItems?: Faq[];
+}
+const { title, description, path, heading, datePublished, dateModified, faqItems = [] } = Astro.props;
+const siteUrl = 'https://www.pandia.app';
+
+const article = {
+  '@type': 'Article',
+  headline: title,
+  description,
+  url: `${siteUrl}${path}`,
+  inLanguage: 'en',
+  datePublished,
+  dateModified: dateModified ?? datePublished,
+  author: { '@id': `${siteUrl}/#organization` },
+  publisher: { '@id': `${siteUrl}/#organization` },
+  mainEntityOfPage: `${siteUrl}${path}`,
+  isPartOf: { '@id': `${siteUrl}/#website` },
+};
+const crumbs = [{ name: 'Guides', path: '/guides' }, { name: heading, path }];
+const structuredData = [breadcrumb(crumbs), article, ...(faqItems.length ? [faqSchema(faqItems, path)] : [])];
+---
+<Layout
+  title={title}
+  description={description}
+  canonical={path}
+  type="article"
+  publishedTime={datePublished}
+  modifiedTime={dateModified ?? datePublished}
+  structuredData={structuredData}
+>
+  <div class="pandia-page">
+    <div class="spine"></div>
+    <Nav />
+    <main>
+      <section class="block guide-block">
+        <div class="wrap">
+          <nav class="guide-crumb" aria-label="Breadcrumb">
+            <a href="/">Home</a><span>·</span><a href="/guides">Guides</a><span>·</span><span class="cur">{heading}</span>
+          </nav>
+          <article class="docs-prose guide-prose">
+            <slot />
+          </article>
+        </div>
+      </section>
+      <CtaBand />
+    </main>
+    <Footer />
+  </div>
+</Layout>
+
+<style is:global>
+  .pandia-page .guide-block { padding-top: 40px; }
+  .pandia-page .guide-crumb {
+    font-family: var(--mono); font-size: 12px; color: var(--page-faint);
+    display: flex; gap: 8px; align-items: center; margin-bottom: 26px; letter-spacing: 0.02em;
+  }
+  .pandia-page .guide-crumb a { color: var(--page-dim); }
+  .pandia-page .guide-crumb a:hover { color: var(--page-text); }
+  .pandia-page .guide-crumb .cur { color: var(--page-text); }
+  .pandia-page .guide-prose { max-width: 764px; }
+</style>

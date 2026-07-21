@@ -1,0 +1,110 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import { guidesBySlug } from '../../data/guides';
+
+const g = guidesBySlug['vscode-large-json'];
+const path = `/guides/${g.slug}`;
+
+const faqItems = [
+  {
+    q: 'Why does VS Code freeze when I open a large JSON file?',
+    a: 'It loads the whole file into an editable in-memory model and runs its JSON language service, formatter and highlighter over the entire document. Each pass scales with file size, so a large file stalls the window.',
+  },
+  {
+    q: 'What size JSON can VS Code handle?',
+    a: 'Comfortably, a few megabytes. Tens of MB get laggy; a few hundred MB can hang the JSON language service or exhaust memory. For anything larger, use a streaming native viewer.',
+  },
+  {
+    q: "How do I open a large JSON file that VS Code can't?",
+    a: "Open it in Pandia, a native app that streams the file instead of parsing it up front. There's no cap on opening or viewing, and nothing is uploaded.",
+  },
+  {
+    q: 'Is there a VS Code extension for large JSON?',
+    a: 'Extensions run inside the same editor model, so they inherit the same memory and parsing limits. A separate native viewer sidesteps the problem rather than working around it.',
+  },
+];
+---
+<GuideLayout
+  title={g.title}
+  description={g.description}
+  path={path}
+  heading={g.cardTitle}
+  datePublished={g.datePublished}
+  faqItems={faqItems}
+>
+  <h1>Why VS Code freezes on large JSON files</h1>
+  <p class="lead">VS Code hangs, lags or spikes your CPU the moment you open a big <code>.json</code> file. Here's
+  what it's doing under the hood — and how to view multi-gigabyte JSON instantly instead.</p>
+
+  <p>VS Code is a great editor, but it was built to edit <em>source code</em> — files measured in kilobytes, not
+  gigabytes. Open a large JSON export and it can stall for a minute, peg a CPU core, or run out of memory and
+  reload the window.</p>
+
+  <h2>What VS Code is actually doing</h2>
+  <p>When you open a JSON file, VS Code does several things at once, and each scales badly with size:</p>
+  <ul>
+    <li><strong>Loads the whole file into an in-memory editor model</strong> so every character is editable —
+    memory grows with the file.</li>
+    <li><strong>Tokenizes and syntax-highlights</strong> the document. Above a size threshold VS Code enables
+    "large file optimizations" and disables tokenization — which is why highlighting suddenly stops.</li>
+    <li><strong>Runs the built-in JSON language service</strong>, which parses the document to provide folding,
+    validation, the outline and IntelliSense — a full parse that blocks on a large file.</li>
+    <li><strong>Format-on-open, bracket-pair colorization and the minimap</strong> each add another pass over the
+    whole document.</li>
+  </ul>
+  <p>On a 20 MB file you'll feel the lag; at a few hundred MB the language service or formatter can hang the
+  window; past that VS Code hits its memory limit and gives up.</p>
+
+  <h2>Settings that help a little</h2>
+  <p>If your file is only moderately large (tens of MB), a few settings buy headroom:</p>
+  <ul>
+    <li><code>"editor.largeFileOptimizations": true</code> — on by default; stops VS Code tokenizing very large files.</li>
+    <li>Raise <code>"files.maxMemoryForLargeFilesMB"</code> if you have RAM to spare.</li>
+    <li>Turn off <code>"editor.formatOnSave"</code> and <code>"editor.bracketPairColorization.enabled"</code>.</li>
+    <li>Set the file's language to <em>Plain Text</em> to bypass the JSON language service — though you lose folding
+    and validation.</li>
+  </ul>
+  <p>These help at the margins. None of them make VS Code a good way to <em>read</em> a multi-gigabyte file, because
+  the core problem — parsing the whole document into memory — remains.</p>
+
+  <h2>The native fix: don't parse the whole file</h2>
+  <p>To open a large JSON file instantly, you need a tool that streams it instead of loading it.
+  <a href="/large-json-viewer">Pandia</a> is a free, native desktop app that does exactly that: at 10 MB and up it
+  uses lazy, zero-copy slicing and only loads the slice on screen, so a multi-gigabyte file opens with no lag and
+  no memory blow-up. And because it's a JSON tool first, you get a real tree, a spreadsheet-style Grid,
+  whole-document search and validation — the things VS Code's text model can't give you on a huge file.</p>
+  <ol>
+    <li>Download Pandia for <a href="/json-viewer-mac">Mac</a>, <a href="/json-viewer-windows">Windows</a> or
+    <a href="/json-viewer-linux">Linux</a>.</li>
+    <li>Drag the JSON file in — it opens immediately, whatever the size.</li>
+    <li>Navigate the tree, search the whole document, and filter arrays in the Grid.</li>
+  </ol>
+
+  <h2>When to use which</h2>
+  <table>
+    <thead>
+      <tr><th>Task</th><th>VS Code</th><th>Pandia</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Editing code &amp; small config</td><td>Best</td><td>—</td></tr>
+      <tr><td>Opening a multi-GB JSON file</td><td>Freezes / crashes</td><td>Opens instantly</td></tr>
+      <tr><td>Tree, Grid &amp; graph views</td><td>No</td><td>Yes</td></tr>
+      <tr><td>Search on a huge document</td><td>Slow</td><td>Whole-document</td></tr>
+      <tr><td>Offline &amp; no upload</td><td>Yes</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+  <p>Keep VS Code for editing code and small config files; reach for a native JSON viewer the moment a file is too
+  big to open comfortably.</p>
+
+  <h2>Frequently asked questions</h2>
+  {faqItems.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+
+  <p class="lp-related">Related: <a href="/guides/open-large-json-file">how to open a large JSON file</a> ·
+  <a href="/guides/notepad-plus-plus-large-json">Notepad++ and large JSON</a> ·
+  <a href="/large-json-viewer">large JSON file viewer</a> · <a href="/download">download Pandia</a>.</p>
+</GuideLayout>

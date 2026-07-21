@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Nav from '../components/home/Nav.astro';
 import Footer from '../components/home/Footer.astro';
 import { VERSION, TAG, RELEASE_BASE as BASE, RELEASES, REPO } from '../data/site';
+import { breadcrumb } from '../data/seo';
 
 const platforms = [
   {
@@ -39,6 +40,7 @@ const icons: Record<string, string> = {
   title="Download"
   description="Download Pandia — the free, native JSON workbench for macOS, Windows and Linux. Open multi-gigabyte files, generate types, compare, repair and export. Offline and open source (Apache-2.0)."
   canonical="/download"
+  structuredData={[breadcrumb([{ name: 'Download', path: '/download' }])]}
 >
   <div class="pandia-page dl-page">
     <div class="spine"></div>

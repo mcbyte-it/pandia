@@ -1,0 +1,101 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import { guidesBySlug } from '../../data/guides';
+
+const g = guidesBySlug['notepad-plus-plus-large-json'];
+const path = `/guides/${g.slug}`;
+
+const faqItems = [
+  {
+    q: 'Why does Notepad++ crash on a large JSON file?',
+    a: "Usually it's the JSON plugin (JSON Viewer / JSTool), which parses the whole document into a tree in memory to display or format it. On a large file that runs out of memory. Notepad++ also can't open files of 2 GB or more.",
+  },
+  {
+    q: 'How big a file can Notepad++ open?',
+    a: 'It handles large plain-text files but has a hard limit below 2 GB, and its JSON plugins choke well before that. To read multi-gigabyte JSON, use a native streaming viewer.',
+  },
+  {
+    q: 'How do I view large JSON on Windows without Notepad++?',
+    a: "Install Pandia for Windows, then drag the file in. It streams the file rather than loading it, so there's no practical size cap on opening, and it gives you a tree, grid and search.",
+  },
+  {
+    q: 'Can I pretty-print a huge minified JSON file?',
+    a: 'Formatting a huge minified file multiplies its line count, which is what overwhelms text editors. A native viewer renders structure directly from the streamed slice, so you can read it without materializing the whole formatted document.',
+  },
+];
+---
+<GuideLayout
+  title={g.title}
+  description={g.description}
+  path={path}
+  heading={g.cardTitle}
+  datePublished={g.datePublished}
+  faqItems={faqItems}
+>
+  <h1>Notepad++ won't open a large JSON file? Do this instead</h1>
+  <p class="lead">Notepad++ stalls, or its JSON plugin crashes, on a big <code>.json</code> file. Here's why — and
+  how to open, read and search multi-gigabyte JSON instantly on Windows.</p>
+
+  <p>Notepad++ is a fast, lightweight text editor, and it can open surprisingly large plain-text files. But
+  <em>opening the text</em> and <em>working with the JSON</em> are two different things — and that's where large
+  JSON files trip it up.</p>
+
+  <h2>Where Notepad++ struggles with big JSON</h2>
+  <ul>
+    <li><strong>The JSON plugins parse the whole document.</strong> JSON Viewer and JSTool build a full tree in
+    memory to show structure or pretty-print. On a large file that parse is slow, or runs out of memory and the
+    plugin (or Notepad++) crashes.</li>
+    <li><strong>Pretty-printing a minified file explodes its size.</strong> A one-line 300 MB JSON becomes millions
+    of lines when formatted, and the editor has to render and hold all of them.</li>
+    <li><strong>There's a hard ceiling.</strong> Notepad++ can't open files at or above 2 GB, and warns well before that.</li>
+    <li><strong>It's a text editor, not a JSON tool.</strong> Even when the file opens, there's no tree to navigate,
+    no schema validation, and no way to filter a huge array — you're scrolling raw text.</li>
+  </ul>
+
+  <h2>Quick things to try in Notepad++</h2>
+  <ul>
+    <li>Turn off <em>Word wrap</em> and set the language to <em>Normal Text</em> to reduce load.</li>
+    <li>Don't run <em>JSON Viewer</em> / <em>Format</em> on a very large file — that's what usually crashes.</li>
+    <li>Use <em>Search → Find</em> to jump around instead of scrolling.</li>
+  </ul>
+  <p>These keep the raw text open, but you still can't explore or validate the JSON. For that you need a tool built
+  for JSON at scale.</p>
+
+  <h2>Open it in a native JSON viewer instead</h2>
+  <p><a href="/large-json-viewer">Pandia</a> is a free, native Windows app (also on Mac and Linux) made for large
+  JSON. Instead of loading the whole file, it streams it — at 10 MB and up it uses lazy, zero-copy slicing and only
+  loads the slice on screen, so multi-gigabyte files open instantly. And because it's a JSON tool, you get a real
+  tree, a Grid for arrays, whole-document search, validation and type generation — the things a plain text editor
+  can't offer.</p>
+  <ol>
+    <li>Download Pandia for <a href="/json-viewer-windows">Windows</a> (<code>.msi</code> or portable <code>.exe</code>).</li>
+    <li>Drag your JSON file onto the window — it opens immediately, however big.</li>
+    <li>Use the Tree to navigate, the Grid to sort and filter arrays, and search across the whole document.</li>
+  </ol>
+
+  <h2>Notepad++ vs a native JSON viewer</h2>
+  <table>
+    <thead>
+      <tr><th></th><th>Notepad++</th><th>Pandia</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Opens raw text</td><td>Yes, under ~2 GB</td><td>Yes, no cap</td></tr>
+      <tr><td>JSON tree &amp; structure</td><td>Plugin, crashes on big files</td><td>Built in, streamed</td></tr>
+      <tr><td>Pretty-print large JSON</td><td>Explodes line count</td><td>Renders from the slice</td></tr>
+      <tr><td>Validation &amp; type generation</td><td>No</td><td>Yes</td></tr>
+      <tr><td>Offline</td><td>Yes</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Frequently asked questions</h2>
+  {faqItems.map((f) => (
+    <>
+      <h3>{f.q}</h3>
+      <p>{f.a}</p>
+    </>
+  ))}
+
+  <p class="lp-related">Related: <a href="/guides/open-large-json-file">how to open a large JSON file</a> ·
+  <a href="/guides/vscode-large-json">fix VS Code freezing on large JSON</a> ·
+  <a href="/json-viewer-windows">JSON viewer for Windows</a> · <a href="/download">download Pandia</a>.</p>
+</GuideLayout>

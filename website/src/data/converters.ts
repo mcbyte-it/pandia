@@ -180,6 +180,141 @@ export type Root = z.infer<typeof Root>;`,
     ],
   },
   {
+    slug: 'kotlin',
+    kind: 'type',
+    name: 'Kotlin',
+    title: 'JSON to Kotlin — Generate Data Classes from JSON',
+    description: 'Convert JSON to Kotlin data classes. Pandia generates ready-to-paste Kotlin types from any JSON document, locally and offline — even multi-gigabyte files. Free and open source.',
+    sub: 'Generate idiomatic Kotlin <code>data class</code> definitions from any JSON document. Nullable fields are inferred, nested objects become their own classes, and nothing is uploaded.',
+    inputJson: TYPE_INPUT,
+    outputLang: 'Kotlin',
+    output: `data class Root(
+    val id: Long,
+    val name: String,
+    val active: Boolean,
+    val tags: List<String>
+)`,
+    intro: 'Pandia turns a JSON document into Kotlin <code>data class</code> declarations. Integer values map to <code>Long</code>, fields missing from some objects become nullable (<code>?</code>), and nested objects and arrays become their own named classes — ready to drop into a Kotlin or Android project.',
+    bullets: [
+      'Idiomatic <code>data class</code> output with <code>val</code> properties.',
+      'Nullable (<code>?</code>) fields inferred from the document.',
+      'Nested objects and arrays become named classes and <code>List&lt;T&gt;</code>.',
+      'Deterministic output — pick the target, copy, paste.',
+    ],
+    faq: [
+      { q: 'How do I generate Kotlin data classes from JSON?', a: 'Open the Types panel in Pandia, choose Kotlin, and copy the generated data classes into your project.' },
+      { q: 'Does it work with kotlinx.serialization, Moshi or Gson?', a: 'The output is plain Kotlin data classes, so it works with any of them — add your serializer’s annotations if you need them.' },
+      { q: 'Does it run offline on large files?', a: 'Yes — the generator runs on your machine with nothing uploaded, and Pandia opens multi-gigabyte JSON without lag.' },
+    ],
+  },
+  {
+    slug: 'java',
+    kind: 'type',
+    name: 'Java',
+    title: 'JSON to Java — Generate Java Classes from JSON',
+    description: 'Convert JSON to Java classes (POJOs) with getters and setters. Pandia generates ready-to-paste Java types from any JSON document, locally and offline — even multi-gigabyte files. Free and open source.',
+    sub: 'Generate Java classes — plain POJOs with typed fields, getters and setters — from any JSON document. Boxed types and nested classes inferred, nothing uploaded.',
+    inputJson: TYPE_INPUT,
+    outputLang: 'Java',
+    output: `public class Root {
+    private Long id;
+    private String name;
+    private Boolean active;
+    private List<String> tags;
+
+    public Long getId() { return this.id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return this.name; }
+    public void setName(String name) { this.name = name; }
+    public Boolean getActive() { return this.active; }
+    public void setActive(Boolean active) { this.active = active; }
+    public List<String> getTags() { return this.tags; }
+    public void setTags(List<String> tags) { this.tags = tags; }
+}`,
+    intro: 'Pandia turns a JSON document into Java classes — classic POJOs with private fields and public getters and setters. Numbers use boxed types (<code>Long</code>, <code>Double</code>) so nulls are representable, and nested objects and arrays become their own classes and <code>List&lt;T&gt;</code> fields.',
+    bullets: [
+      'POJO classes with private fields plus public getters and setters.',
+      'Boxed types (<code>Long</code>, <code>Double</code>, <code>Boolean</code>) so every field is nullable.',
+      'Nested objects and arrays become named classes and <code>List&lt;T&gt;</code>.',
+      'Works with Jackson or Gson — add annotations if your setup needs them.',
+    ],
+    faq: [
+      { q: 'How do I generate Java classes from JSON?', a: 'Open the Types panel in Pandia, choose Java, and copy the generated classes — each field comes with a getter and setter.' },
+      { q: 'Are these records or classic POJOs?', a: 'Pandia generates classic POJOs with getters and setters, which work on every Java version and with Jackson, Gson and most frameworks.' },
+      { q: 'Does it work offline, even on big files?', a: 'Yes — everything runs locally with no upload, and Pandia handles multi-gigabyte documents without freezing.' },
+    ],
+  },
+  {
+    slug: 'php',
+    kind: 'type',
+    name: 'PHP',
+    title: 'JSON to PHP — Generate PHP 8 Classes from JSON',
+    description: 'Convert JSON to modern PHP 8 classes. Pandia generates ready-to-paste PHP types from any JSON document, locally and offline — even multi-gigabyte files. Free and open source.',
+    sub: 'Generate modern PHP 8 classes — <code>final readonly</code> with promoted constructor properties — from any JSON document. Typed, nullable-aware, nothing uploaded.',
+    inputJson: TYPE_INPUT,
+    outputLang: 'PHP',
+    output: `<?php
+
+declare(strict_types=1);
+
+final readonly class Root
+{
+    public function __construct(
+        public int $id,
+        public string $name,
+        public bool $active,
+        public array $tags
+    ) {}
+}`,
+    intro: 'Pandia turns a JSON document into modern PHP 8 classes: <code>final readonly</code> classes with constructor property promotion and <code>declare(strict_types=1)</code>. Types are inferred (<code>int</code>, <code>string</code>, <code>bool</code>, <code>array</code>), optional fields become nullable with a <code>null</code> default, and nested objects become their own classes.',
+    bullets: [
+      'Modern <code>final readonly</code> classes with promoted constructor properties.',
+      'Strict types via <code>declare(strict_types=1)</code>.',
+      'Optional fields inferred as nullable (<code>?T = null</code>).',
+      'Nested objects become their own classes.',
+    ],
+    faq: [
+      { q: 'How do I generate PHP classes from JSON?', a: 'Open the Types panel in Pandia, choose PHP, and copy the generated classes into your project.' },
+      { q: 'Which PHP version does the output target?', a: 'PHP 8.1+ — the output uses readonly classes and constructor property promotion. For older PHP, declare explicit properties and a constructor body instead.' },
+      { q: 'Is anything uploaded, and how big a file can it handle?', a: 'Nothing is uploaded — conversion is fully local — and there is no size limit on opening, so multi-gigabyte JSON works fine.' },
+    ],
+  },
+  {
+    slug: 'json-schema',
+    kind: 'type',
+    name: 'JSON Schema',
+    title: 'JSON to JSON Schema — Generate a Schema from JSON',
+    description: 'Convert JSON to a JSON Schema (draft 2020-12). Pandia infers a ready-to-use schema from any JSON document, locally and offline. Free and open source.',
+    sub: 'Infer a JSON Schema (draft 2020-12) from any JSON document — types, <code>required</code> fields and string formats detected automatically, nothing uploaded.',
+    inputJson: TYPE_INPUT,
+    outputLang: 'JSON',
+    output: `{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/root.schema.json",
+  "title": "Root",
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "active": { "type": "boolean" },
+    "tags": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["id", "name", "active", "tags"]
+}`,
+    intro: 'Pandia infers a <strong>JSON Schema</strong> (draft 2020-12) from a sample document. It walks the data, assigns a <code>type</code> to every field, lists non-null keys under <code>required</code>, and detects string <strong>formats</strong> like <code>date</code>, <code>date-time</code>, <code>email</code> and <code>uri</code> — a schema you can validate against straight away.',
+    bullets: [
+      'Draft 2020-12 schema with <code>$schema</code>, <code>$id</code> and <code>title</code>.',
+      'Every property typed; non-null keys collected into <code>required</code>.',
+      'String formats (<code>date</code>, <code>date-time</code>, <code>email</code>, <code>uri</code>) auto-detected.',
+      'Nested objects and arrays produce nested schemas.',
+    ],
+    faq: [
+      { q: 'How do I generate a JSON Schema from JSON?', a: 'Open the Types panel in Pandia, choose JSON Schema, and copy the inferred draft 2020-12 schema.' },
+      { q: 'Which draft does it target?', a: 'Draft 2020-12. The output includes the $schema keyword so validators know which dialect to use.' },
+      { q: 'Does it run locally, and is there a size limit?', a: 'Schema inference runs on your machine with nothing uploaded. Because it materializes the whole document, it targets files up to Pandia’s ~200 MB whole-document ceiling — larger files still open and browse without limit.' },
+    ],
+  },
+  {
     slug: 'yaml',
     kind: 'format',
     name: 'YAML',

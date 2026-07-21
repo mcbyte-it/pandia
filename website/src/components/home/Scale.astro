@@ -1,5 +1,9 @@
 ---
+interface Props { learnMore?: string }
+const { learnMore } = Astro.props;
 // The 200 MB ceiling is ONLY for whole-doc edit/export/validate.
+// learnMore renders a contextual link only where Scale is embedded on another page
+// (e.g. the homepage → /large-json-viewer); omit it on /large-json-viewer itself to avoid a self-link.
 ---
 <section class="block">
   <div class="wrap">
@@ -22,6 +26,7 @@
           <div class="pt"><span class="lbl">200 MB cap</span>only whole-doc edit / export / validate</div>
           <div class="pt"><span class="lbl">Recovery</span>auto-save &amp; backups, scan / restore</div>
         </div>
+        {learnMore && <p class="scale-more"><a href={learnMore}>The large JSON file viewer, in depth →</a></p>}
       </div>
 
       <div class="iv">
@@ -76,6 +81,9 @@
   }
   .pandia-page .scale-points .pt .lbl { color: var(--page-faint); text-transform: uppercase; letter-spacing: 0.12em; font-size: 10px; width: 132px; }
   .pandia-page .scale-points .pt .gn { color: #4e8a3a; }
+  .pandia-page .scale-more { margin-top: 22px; }
+  .pandia-page .scale-more a { font-family: var(--mono); font-size: 12.5px; color: var(--accent); letter-spacing: 0.02em; }
+  .pandia-page .scale-more a:hover { text-decoration: underline; text-underline-offset: 2px; }
 
   .pandia-page .meter { border: 1px solid var(--app-rule-2); overflow: hidden; background: var(--app-elev); color: var(--app-text); }
   .pandia-page .meter-head {
