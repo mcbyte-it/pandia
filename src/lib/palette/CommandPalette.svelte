@@ -6,6 +6,7 @@
 		type CommandCategory,
 	} from './state/command-store.svelte';
 	import { fuzzyMatch, highlightLabel } from './match';
+	import { fmtKbd } from '$lib/util/platform';
 
 	interface Props {
 		open: boolean;
@@ -177,7 +178,7 @@
 								<span class="cat">{r.cmd.category}</span>
 							{/if}
 							{#if r.cmd.keybinding}
-								<span class="kbd">{r.cmd.keybinding}</span>
+								<span class="kbd">{fmtKbd(r.cmd.keybinding)}</span>
 							{/if}
 						</li>
 					{/each}

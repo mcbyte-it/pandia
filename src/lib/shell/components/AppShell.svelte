@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/core';
-	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+	import { listen, emit, type UnlistenFn } from '@tauri-apps/api/event';
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { open as openDialog, message, ask } from '@tauri-apps/plugin-dialog';
 	import { open as openInBrowser } from '@tauri-apps/plugin-shell';
@@ -18,6 +18,7 @@
 		buildMenuRouteMap,
 		type ShellCommandDeps,
 	} from '$lib/shell/logic/app-commands';
+	import { matchMenuShortcut } from '$lib/shell/logic/shortcuts';
 	import DocPane from '$lib/docpane/components/DocPane.svelte';
 	import HelpDialog from '$lib/shell/components/HelpDialog.svelte';
 	import SettingsView from '$lib/settings/SettingsView.svelte';
@@ -454,6 +455,17 @@
 		};
 	});
 
+	// On non-macOS the native-menu accelerators are unreliable, so JS drives shortcuts:
+	// match the keydown to the same menu id and re-emit menu-event, reusing the existing
+	// routers (shell + doc). matchMenuShortcut returns null on macOS, leaving it untouched.
+	function onWindowKeydown(e: KeyboardEvent) {
+		if (e.defaultPrevented) return; // a focused editor/input already handled it
+		const id = matchMenuShortcut(e);
+		if (!id) return;
+		e.preventDefault();
+		void emit('menu-event', id);
+	}
+
 	function onTopBarPointerDown(e: PointerEvent) {
 		if (e.button !== 0) return;
 		const target = e.target as HTMLElement | null;
@@ -467,6 +479,8 @@
 		void win.startDragging().catch(() => {});
 	}
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <div class="shell">
 	<header

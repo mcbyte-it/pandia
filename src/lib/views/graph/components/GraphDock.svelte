@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/ui/Icon.svelte';
 	import {
+		ChevronUp,
 		Crosshair,
 		Download,
 		Expand,
@@ -12,6 +13,7 @@
 		Shrink,
 		UnfoldVertical,
 	} from '@lucide/svelte';
+	import type { ExportFormat } from './GraphExportMenu.svelte';
 
 	interface Props {
 		zoomPct: number;
@@ -25,7 +27,8 @@
 		onCollapseAll: () => void;
 		onZoomOut: () => void;
 		onZoomIn: () => void;
-		onExport: () => void;
+		onExportDefault: () => void;
+		onToggleExportMenu: () => void;
 
 		onToggleFullscreen: () => void;
 
@@ -38,6 +41,7 @@
 		settingsBtn?: HTMLButtonElement | null;
 		exportBtn?: HTMLButtonElement | null;
 		exportMenuOpen?: boolean;
+		exportFormat: ExportFormat;
 		expandDisabled?: boolean;
 		exportDisabled?: boolean;
 	}
@@ -50,7 +54,8 @@
 		onCollapseAll,
 		onZoomOut,
 		onZoomIn,
-		onExport,
+		onExportDefault,
+		onToggleExportMenu,
 		onToggleFullscreen,
 		isFullscreen = false,
 		onToggleSettings,
@@ -58,6 +63,7 @@
 		settingsBtn = $bindable(null),
 		exportBtn = $bindable(null),
 		exportMenuOpen = false,
+		exportFormat,
 		expandDisabled = false,
 		exportDisabled = false,
 	}: Props = $props();
@@ -125,18 +131,30 @@
 		<Icon icon={isFullscreen ? Shrink : Expand} size="sm" />
 	</button>
 
-	<button
-		class="dock-btn"
-		class:on={exportMenuOpen}
-		bind:this={exportBtn}
-		title="Export"
-		aria-label="Export graph"
-		aria-expanded={exportMenuOpen}
-		onclick={onExport}
-		disabled={exportDisabled}
-	>
-		<Icon icon={Download} size="sm" />
-	</button>
+	<div class="dock-split">
+		<button
+			class="dock-btn dock-split-main"
+			title={`Download as ${exportFormat.toUpperCase()}`}
+			aria-label={`Download graph as ${exportFormat.toUpperCase()}`}
+			onclick={onExportDefault}
+			disabled={exportDisabled}
+		>
+			<Icon icon={Download} size="sm" />
+		</button>
+		<button
+			class="dock-btn dock-split-caret"
+			class:on={exportMenuOpen}
+			bind:this={exportBtn}
+			title="Choose export format"
+			aria-label="Choose export format"
+			aria-haspopup="menu"
+			aria-expanded={exportMenuOpen}
+			onclick={onToggleExportMenu}
+			disabled={exportDisabled}
+		>
+			<Icon icon={ChevronUp} size="sm" />
+		</button>
+	</div>
 </div>
 
 <style>
@@ -186,6 +204,18 @@
 	.dock-btn:disabled {
 		color: var(--text-faint);
 		cursor: default;
+	}
+	.dock-split {
+		display: flex;
+		align-items: center;
+	}
+	.dock-split-main {
+		border-radius: 6px 0 0 6px;
+	}
+	.dock-split-caret {
+		width: 20px;
+		border-radius: 0 6px 6px 0;
+		border-left: 1px solid var(--rule-2);
 	}
 	.dock-sep {
 		width: 1px;

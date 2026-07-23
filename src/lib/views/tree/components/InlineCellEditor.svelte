@@ -3,6 +3,7 @@
 	import { autofocusSelect, autogrowArea, autofocusEl } from '$lib/ui/focus';
 	import Icon from '$lib/ui/Icon.svelte';
 	import { ChevronDown, ChevronUp } from '@lucide/svelte';
+	import { fmtKbd } from '$lib/util/platform';
 	import {
 		createEditHandlers,
 		editSize,
@@ -73,7 +74,7 @@
 		spellcheck="false"
 		autocomplete="off"
 	/>
-	{@render microBar('Key', '⏎')}
+	{@render microBar('Key', fmtKbd('⏎'))}
 {:else if kind === 'bool'}
 	<span
 		class="bool-seg"
@@ -101,7 +102,7 @@
 			}}>false</button
 		>
 	</span>
-	<span class="edit-hint">←/→ toggle · ⏎ save</span>
+	<span class="edit-hint">←/→ toggle · {fmtKbd('⏎')} save</span>
 {:else if kind === 'number'}
 	<span class="num-edit">
 		<input
@@ -132,7 +133,7 @@
 			>
 		</span>
 	</span>
-	<span class="edit-hint">↑/↓ step · ⇧ ×10</span>
+	<span class="edit-hint">↑/↓ step · {fmtKbd('⇧')} ×10</span>
 {:else if kind === 'string'}
 	<span class="str-edit">
 		<textarea
@@ -144,7 +145,7 @@
 			onblur={onCommit}
 			spellcheck="false"
 		></textarea>
-		{@render microBar('Str', '⌘⏎')}
+		{@render microBar('Str', fmtKbd('⌘⏎'))}
 	</span>
 {:else}
 	<input
@@ -158,7 +159,7 @@
 		spellcheck="false"
 		autocomplete="off"
 	/>
-	{@render microBar(valueTypeLabel(kind), '⏎')}
+	{@render microBar(valueTypeLabel(kind), fmtKbd('⏎'))}
 {/if}
 
 <style>

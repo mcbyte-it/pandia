@@ -2,6 +2,7 @@
 	import type { DocStatus } from '$lib/shell/logic/status';
 	import Icon from '$lib/ui/Icon.svelte';
 	import { X, Plus } from '@lucide/svelte';
+	import { fmtKbd } from '$lib/util/platform';
 
 	interface Tab {
 		id: string;
@@ -126,7 +127,7 @@
 						e.stopPropagation();
 						onClose(tab.id);
 					}}
-					title="Close tab (⌘W)"
+					title={`Close tab (${fmtKbd('⌘W')})`}
 					aria-label="Close tab"><Icon icon={X} size="xs" /></button
 				>
 			</div>
@@ -134,7 +135,7 @@
 		<button
 			class="tab-new"
 			onclick={onNew}
-			title={tabs.length >= maxTabs ? `Max ${maxTabs} tabs` : 'New tab (⌘T)'}
+			title={tabs.length >= maxTabs ? `Max ${maxTabs} tabs` : `New tab (${fmtKbd('⌘T')})`}
 			disabled={tabs.length >= maxTabs}
 			aria-label="New tab"><Icon icon={Plus} size="sm" /></button
 		>
@@ -154,7 +155,7 @@
 			aria-haspopup="menu"
 			aria-expanded={comparePickerOpen}
 		>
-			<span>Compare</span><span class="kbd">⌘D</span>
+			<span>Compare</span><span class="kbd">{fmtKbd('⌘D')}</span>
 		</button>
 		<button
 			class="tba"
@@ -162,7 +163,7 @@
 			disabled={!hasActiveDoc}
 			title="Export to JSON (pretty / minified) · YAML · CSV · XML"
 		>
-			<span>Export</span><span class="kbd">⌘E</span>
+			<span>Export</span><span class="kbd">{fmtKbd('⌘E')}</span>
 		</button>
 	</div>
 </nav>

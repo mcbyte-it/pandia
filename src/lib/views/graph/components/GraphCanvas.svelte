@@ -114,11 +114,19 @@
 
 	function onWheel(e: WheelEvent) {
 		e.preventDefault();
+		// Normalize wheel deltas to pixels. Windows precision touchpads and mouse wheels emit
+		// line/page-mode deltas (deltaMode 1/2); consuming them raw makes pan crawl or lurch and
+		// zoom overshoot. macOS pixel-mode deltas pass through unchanged (unit = 1).
+		const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? screenH || 800 : 1;
+		const dx = e.deltaX * unit;
+		const dy = e.deltaY * unit;
 		if (e.ctrlKey || e.metaKey) {
-			const factor = Math.exp(-e.deltaY * 0.012);
-			zoomAtScreenPoint(e.clientX, e.clientY, factor);
+			// Pinch / Ctrl+wheel zoom. Clamp the per-event delta so one coarse Windows notch
+			// can't jump the whole zoom range in a single step.
+			const cdy = Math.max(-24, Math.min(24, dy));
+			zoomAtScreenPoint(e.clientX, e.clientY, Math.exp(-cdy * 0.012));
 		} else {
-			viewport = panViewport(viewport, -e.deltaX, -e.deltaY);
+			viewport = panViewport(viewport, -dx, -dy);
 		}
 	}
 
@@ -134,6 +142,7 @@
 	function onPointerDown(e: PointerEvent) {
 		if (e.button !== 0) return;
 		if (!canvas) return;
+		host?.focus({ preventScroll: true }); // enable the keyboard zoom fallback (Ctrl +/-)
 		const rect = canvas.getBoundingClientRect();
 		const hit = hitAtScreen(e.clientX - rect.left, e.clientY - rect.top);
 		if (hit?.kind === 'port') {
@@ -195,6 +204,19 @@
 			return;
 		}
 		zoomAtScreenPoint(e.clientX, e.clientY, 1.4);
+	}
+
+	// Keyboard zoom fallback for Windows touchpads whose driver swallows the pinch gesture
+	// so it never arrives as a ctrlKey wheel event. Active once the graph has focus (click).
+	function onKeydown(e: KeyboardEvent) {
+		if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+		if (e.key === '=' || e.key === '+') {
+			e.preventDefault();
+			zoomBy(1.25);
+		} else if (e.key === '-' || e.key === '_') {
+			e.preventDefault();
+			zoomBy(0.8);
+		}
 	}
 
 	function hitAtScreen(sx: number, sy: number): HitTarget {
@@ -264,7 +286,9 @@
 	bind:this={host}
 	role="application"
 	aria-label="JSON graph view"
+	tabindex="-1"
 	onwheel={onWheel}
+	onkeydown={onKeydown}
 	onpointerdown={onPointerDown}
 	onpointermove={onPointerMove}
 	onpointerup={onPointerUp}

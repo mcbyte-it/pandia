@@ -36,6 +36,7 @@
 	import Icon from '$lib/ui/Icon.svelte';
 	import { Check, X } from '@lucide/svelte';
 	import { fmtBytes } from '$lib/util/format';
+	import { fmtKbd } from '$lib/util/platform';
 	import { FindController } from '$lib/find/state/find.svelte';
 	import { PromptController } from '$lib/ui/prompt.svelte';
 	import { createDocPaneCommands } from '../logic/doc-pane-commands';
@@ -557,13 +558,13 @@
 					class="vm"
 					class:active={viewMode === 'tree'}
 					onclick={() => void switchView('tree')}
-					title="tree view (⌘1)">Tree</button
+					title={`tree view (${fmtKbd('⌘1')})`}>Tree</button
 				>
 				<button
 					class="vm"
 					class:active={viewMode === 'code'}
 					onclick={() => void switchView('code')}
-					title="code view (⌘2)">Code</button
+					title={`code view (${fmtKbd('⌘2')})`}>Code</button
 				>
 				<button
 					class="vm"
@@ -571,8 +572,8 @@
 					class:available={gridSchema?.gridSuitable && viewMode !== 'grid'}
 					onclick={() => void switchView('grid')}
 					title={gridSchema?.gridSuitable
-						? 'grid view (⌘3) · this document looks like a grid'
-						: 'grid view (⌘3)'}
+						? `grid view (${fmtKbd('⌘3')}) · this document looks like a grid`
+						: `grid view (${fmtKbd('⌘3')})`}
 					>Grid{#if gridSchema?.gridSuitable && viewMode !== 'grid'}<span
 							class="vm-dot"
 							aria-hidden="true"
@@ -582,7 +583,7 @@
 					class="vm"
 					class:active={viewMode === 'graph'}
 					onclick={() => void switchView('graph')}
-					title="graph view (⌘4)">Graph</button
+					title={`graph view (${fmtKbd('⌘4')})`}>Graph</button
 				>
 				{#if viewMode === 'compare'}
 					<button class="vm active" onclick={compare.exit} title="exit compare">Compare</button>

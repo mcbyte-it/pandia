@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { pathToString } from '$lib/util/path';
+	import { fmtKbd } from '$lib/util/platform';
 	import Popover from '$lib/ui/Popover.svelte';
 	import Icon from '$lib/ui/Icon.svelte';
 	import { ChevronRight } from '@lucide/svelte';
@@ -74,7 +75,9 @@
 				{/each}
 			{/each}
 
-			<div class="menu-tip">right-click · <span class="kbd">⌃Q</span> · esc to close</div>
+			<div class="menu-tip">
+				right-click · <span class="kbd">{fmtKbd('⌃Q')}</span> · esc to close
+			</div>
 		</div>
 	{/snippet}
 </Popover>

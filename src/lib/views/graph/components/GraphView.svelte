@@ -238,6 +238,7 @@
 	let exporting = $state(false);
 	let exportMenuOpen = $state(false);
 	let exportBtn: HTMLButtonElement | null = $state(null);
+	let exportFormat = $state<ExportFormat>('png'); // last-used format; the primary export button uses it
 
 	function defaultExportName(format: ExportFormat): string {
 		const base = sourcePath ? stem(sourcePath) : 'graph';
@@ -319,7 +320,8 @@
 			onCollapseAll={collapseAll}
 			onZoomOut={() => canvasApi?.zoomBy(0.8)}
 			onZoomIn={() => canvasApi?.zoomBy(1.25)}
-			onExport={() => (exportMenuOpen = !exportMenuOpen)}
+			onExportDefault={() => void exportAs(exportFormat)}
+			onToggleExportMenu={() => (exportMenuOpen = !exportMenuOpen)}
 			onToggleFullscreen={() => void toggleFullscreen()}
 			{isFullscreen}
 			onToggleSettings={() => (settingsOpen = !settingsOpen)}
@@ -327,6 +329,7 @@
 			bind:settingsBtn
 			bind:exportBtn
 			{exportMenuOpen}
+			{exportFormat}
 			expandDisabled={expanding}
 			exportDisabled={exporting || layout.cards.length === 0}
 		/>
@@ -335,7 +338,10 @@
 			anchor={exportBtn}
 			rasterDownscaled={planRasterExport(layout, 40).downscaled}
 			onClose={() => (exportMenuOpen = false)}
-			onPick={(f) => void exportAs(f)}
+			onPick={(f) => {
+				exportFormat = f;
+				void exportAs(f);
+			}}
 		/>
 		<GraphSettings
 			open={settingsOpen}

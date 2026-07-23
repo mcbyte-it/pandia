@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { DocStatus } from '../logic/status';
 	import { updateCheck } from '$lib/shell/state/update-check.svelte';
+	import { fmtKbd } from '$lib/util/platform';
 
 	interface Props {
 		status: DocStatus | null;
@@ -64,9 +65,9 @@
 		class="sb-cell right kbd-cell"
 		onclick={() => onPaletteOpen?.()}
 		disabled={!onPaletteOpen}
-		title="Command palette (⌘K)"
+		title={`Command palette (${fmtKbd('⌘K')})`}
 	>
-		<span class="kbd">⌘K</span><span class="cmd">Commands</span>
+		<span class="kbd">{fmtKbd('⌘K')}</span><span class="cmd">Commands</span>
 	</button>
 </div>
 
