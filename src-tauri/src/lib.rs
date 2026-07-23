@@ -333,12 +333,14 @@ fn build_menu(
         .build(app)?;
     let view_website = MenuItemBuilder::with_id("view_website", "View Website").build(app)?;
     let report_issue = MenuItemBuilder::with_id("report_issue", "Report Issue…").build(app)?;
+    let send_feedback = MenuItemBuilder::with_id("send_feedback", "Send Feedback…").build(app)?;
 
     #[cfg(not(target_os = "macos"))]
     let help_menu = SubmenuBuilder::new(app, "Help")
         .item(&keyboard_shortcuts)
         .item(&view_website)
         .item(&report_issue)
+        .item(&send_feedback)
         .separator()
         .item(&about)
         .item(&check_for_updates)
@@ -351,6 +353,7 @@ fn build_menu(
         .item(&keyboard_shortcuts)
         .item(&view_website)
         .item(&report_issue)
+        .item(&send_feedback)
         .build()?;
 
     #[cfg(target_os = "macos")]

@@ -18,6 +18,7 @@ export interface ShellCommandDeps {
 	toggleComparePicker: () => void;
 	openSettings: (tab?: SettingsTab) => void;
 	openHelp: () => void;
+	openFeedback: () => void;
 	togglePalette: () => void;
 	clearRecents: () => void;
 	showAbout: () => Promise<void> | void;
@@ -128,6 +129,12 @@ export function buildShellCommands(deps: ShellCommandDeps): Command[] {
 			category: 'Help',
 			run: deps.reportIssue,
 		},
+		{
+			id: 'help.feedback',
+			label: 'Send Feedback…',
+			category: 'Help',
+			run: deps.openFeedback,
+		},
 	];
 }
 
@@ -147,6 +154,7 @@ export function buildMenuRouteMap(deps: ShellCommandDeps): Record<string, () => 
 		keyboard_shortcuts: deps.openHelp,
 		view_website: deps.openWebsite,
 		report_issue: deps.reportIssue,
+		send_feedback: deps.openFeedback,
 		settings_appearance: () => deps.openSettings('appearance'),
 		settings_behavior: () => deps.openSettings('behavior'),
 		settings_layout: () => deps.openSettings('layout'),
