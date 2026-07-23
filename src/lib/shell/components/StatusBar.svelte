@@ -1,13 +1,17 @@
 <script lang="ts">
 	import type { DocStatus } from '../logic/status';
 	import { updateCheck } from '$lib/shell/state/update-check.svelte';
+	import { fmtKbd } from '$lib/util/platform';
+	import Icon from '$lib/ui/Icon.svelte';
+	import { MessageSquarePlus } from '@lucide/svelte';
 
 	interface Props {
 		status: DocStatus | null;
 		onPaletteOpen?: () => void;
+		onFeedback?: () => void;
 	}
 
-	let { status, onPaletteOpen }: Props = $props();
+	let { status, onPaletteOpen, onFeedback }: Props = $props();
 </script>
 
 <div class="statusbar">
@@ -64,10 +68,20 @@
 		class="sb-cell right kbd-cell"
 		onclick={() => onPaletteOpen?.()}
 		disabled={!onPaletteOpen}
-		title="Command palette (⌘K)"
+		title={`Command palette (${fmtKbd('⌘K')})`}
 	>
-		<span class="kbd">⌘K</span><span class="cmd">Commands</span>
+		<span class="kbd">{fmtKbd('⌘K')}</span><span class="cmd">Commands</span>
 	</button>
+
+	{#if onFeedback}
+		<button
+			class="sb-cell right kbd-cell feedback-cell"
+			onclick={() => onFeedback()}
+			title="Share feedback or a suggestion"
+		>
+			<Icon icon={MessageSquarePlus} size="xs" /><span class="cmd">Feedback</span>
+		</button>
+	{/if}
 </div>
 
 <style>
@@ -183,6 +197,12 @@
 	}
 	.cmd {
 		text-transform: lowercase;
+	}
+	.feedback-cell {
+		gap: 6px;
+	}
+	.feedback-cell:hover {
+		color: var(--accent);
 	}
 
 	.update-cell {

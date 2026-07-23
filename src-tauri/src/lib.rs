@@ -284,9 +284,20 @@ fn build_menu(
     let toggle_graph_view = MenuItemBuilder::with_id("toggle_graph_view", "Graph View")
         .accelerator("CmdOrCtrl+4")
         .build(app)?;
-    let open_settings = MenuItemBuilder::with_id("open_settings", "Settings…")
+    let settings_appearance = MenuItemBuilder::with_id("settings_appearance", "Appearance")
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
+    let settings_behavior = MenuItemBuilder::with_id("settings_behavior", "Behavior").build(app)?;
+    let settings_layout = MenuItemBuilder::with_id("settings_layout", "Layout").build(app)?;
+    let settings_data = MenuItemBuilder::with_id("settings_data", "Data").build(app)?;
+    let settings_about = MenuItemBuilder::with_id("settings_about", "About").build(app)?;
+    let settings_menu = SubmenuBuilder::new(app, "Settings")
+        .item(&settings_appearance)
+        .item(&settings_behavior)
+        .item(&settings_layout)
+        .item(&settings_data)
+        .item(&settings_about)
+        .build()?;
 
     let view_menu = SubmenuBuilder::new(app, "View")
         .item(&command_palette)
@@ -297,8 +308,6 @@ fn build_menu(
         .item(&toggle_code_view)
         .item(&toggle_form_view)
         .item(&toggle_graph_view)
-        .separator()
-        .item(&open_settings)
         .separator()
         .item(&PredefinedMenuItem::fullscreen(
             app,
@@ -324,12 +333,14 @@ fn build_menu(
         .build(app)?;
     let view_website = MenuItemBuilder::with_id("view_website", "View Website").build(app)?;
     let report_issue = MenuItemBuilder::with_id("report_issue", "Report Issue…").build(app)?;
+    let send_feedback = MenuItemBuilder::with_id("send_feedback", "Send Feedback…").build(app)?;
 
     #[cfg(not(target_os = "macos"))]
     let help_menu = SubmenuBuilder::new(app, "Help")
         .item(&keyboard_shortcuts)
         .item(&view_website)
         .item(&report_issue)
+        .item(&send_feedback)
         .separator()
         .item(&about)
         .item(&check_for_updates)
@@ -342,6 +353,7 @@ fn build_menu(
         .item(&keyboard_shortcuts)
         .item(&view_website)
         .item(&report_issue)
+        .item(&send_feedback)
         .build()?;
 
     #[cfg(target_os = "macos")]
@@ -353,6 +365,7 @@ fn build_menu(
             &edit_menu,
             &view_menu,
             &tools_menu,
+            &settings_menu,
             &help_menu,
         ],
     )?;
@@ -360,7 +373,14 @@ fn build_menu(
     #[cfg(not(target_os = "macos"))]
     let menu = Menu::with_items(
         app,
-        &[&file_menu, &edit_menu, &view_menu, &tools_menu, &help_menu],
+        &[
+            &file_menu,
+            &edit_menu,
+            &view_menu,
+            &tools_menu,
+            &settings_menu,
+            &help_menu,
+        ],
     )?;
 
     Ok(menu)

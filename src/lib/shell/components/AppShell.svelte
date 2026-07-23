@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invoke } from '@tauri-apps/api/core';
-	import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+	import { listen, emit, type UnlistenFn } from '@tauri-apps/api/event';
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { open as openDialog, message, ask } from '@tauri-apps/plugin-dialog';
 	import { open as openInBrowser } from '@tauri-apps/plugin-shell';
@@ -18,9 +18,12 @@
 		buildMenuRouteMap,
 		type ShellCommandDeps,
 	} from '$lib/shell/logic/app-commands';
+	import { matchMenuShortcut } from '$lib/shell/logic/shortcuts';
 	import DocPane from '$lib/docpane/components/DocPane.svelte';
 	import HelpDialog from '$lib/shell/components/HelpDialog.svelte';
+	import FeedbackDialog from '$lib/shell/components/FeedbackDialog.svelte';
 	import SettingsView from '$lib/settings/SettingsView.svelte';
+	import type { SettingsTab } from '$lib/settings/tabs';
 	import Sidebar from './Sidebar.svelte';
 	import StatusBar from './StatusBar.svelte';
 	import RecoveryDialog from './RecoveryDialog.svelte';
@@ -39,6 +42,8 @@
 	import { fmtBytes } from '$lib/util/format';
 
 	const LARGE_FILE_WARN_BYTES = 200 * 1024 * 1024;
+
+	const FEEDBACK_URL = 'https://tally.so/r/dW419D';
 
 	const tabStore = new TabStore();
 	const confirm = new ConfirmController();
@@ -146,11 +151,14 @@
 			sidebarPrefs.setActiveTab('schema');
 		},
 		toggleComparePicker,
-		openSettings: () => {
-			settingsOpen = true;
+		openSettings: (tab: SettingsTab = 'appearance') => {
+			settingsTab = tab;
 		},
 		openHelp: () => {
 			helpOpen = true;
+		},
+		openFeedback: () => {
+			feedbackOpen = true;
 		},
 		togglePalette,
 		clearRecents,
@@ -324,7 +332,13 @@
 	});
 
 	let helpOpen = $state(false);
-	let settingsOpen = $state(false);
+	let feedbackOpen = $state(false);
+	let settingsTab: SettingsTab | null = $state(null);
+
+	function shareFeedback() {
+		feedbackOpen = false;
+		void openInBrowser(FEEDBACK_URL).catch(() => {});
+	}
 
 	let paletteOpen = $state(false);
 	function openPalette() {
@@ -454,6 +468,14 @@
 		};
 	});
 
+	function onWindowKeydown(e: KeyboardEvent) {
+		if (e.defaultPrevented) return; // a focused editor/input already handled it
+		const id = matchMenuShortcut(e);
+		if (!id) return;
+		e.preventDefault();
+		void emit('menu-event', id);
+	}
+
 	function onTopBarPointerDown(e: PointerEvent) {
 		if (e.button !== 0) return;
 		const target = e.target as HTMLElement | null;
@@ -467,6 +489,8 @@
 		void win.startDragging().catch(() => {});
 	}
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <div class="shell">
 	<header
@@ -536,7 +560,11 @@
 	</div>
 
 	<footer class="shell-status">
-		<StatusBar status={tabStore.activeStatus} onPaletteOpen={openPalette} />
+		<StatusBar
+			status={tabStore.activeStatus}
+			onPaletteOpen={openPalette}
+			onFeedback={() => (feedbackOpen = true)}
+		/>
 	</footer>
 
 	{#if dropping}
@@ -582,9 +610,17 @@
 	<HelpDialog onClose={() => (helpOpen = false)} />
 {/if}
 
-{#if settingsOpen}
+{#if feedbackOpen}
+	<FeedbackDialog onShare={shareFeedback} onClose={() => (feedbackOpen = false)} />
+{/if}
+
+{#if settingsTab}
 	<div class="settings-overlay">
-		<SettingsView onClose={() => (settingsOpen = false)} />
+		<SettingsView
+			active={settingsTab}
+			onSelectTab={(t) => (settingsTab = t)}
+			onClose={() => (settingsTab = null)}
+		/>
 	</div>
 {/if}
 

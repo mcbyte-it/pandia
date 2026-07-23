@@ -21,6 +21,7 @@
 	import { buildOffsets, DEFAULT_ROW_H, OVERSCAN, visibleWindow } from '../logic/virtualizer';
 	import type { DiffKind, Path } from '$lib/ipc/types';
 	import InlineCellEditor from './InlineCellEditor.svelte';
+	import { fmtKbd } from '$lib/util/platform';
 
 	interface ScrollRequest {
 		idx: number;
@@ -444,7 +445,7 @@
 					{#if !readOnly}
 						<button
 							class="trigger"
-							title="Open row menu (⌃Q · right-click)"
+							title={`Open row menu (${fmtKbd('⌃Q')} · right-click)`}
 							onclick={(e) => onTriggerClick(e, i, row)}
 							><Icon icon={MoreHorizontal} size="xs" /></button
 						>

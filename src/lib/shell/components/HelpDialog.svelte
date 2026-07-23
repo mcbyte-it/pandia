@@ -3,6 +3,7 @@
 	import Icon from '$lib/ui/Icon.svelte';
 	import { X } from '@lucide/svelte';
 	import { commandRegistry, type CommandCategory } from '$lib/palette/state/command-store.svelte';
+	import { fmtKbd } from '$lib/util/platform';
 
 	interface Props {
 		onClose: () => void;
@@ -95,7 +96,7 @@
 						{#each g.items as it (it.label)}
 							<li class="row">
 								<span class="keys">
-									{#each it.keys as k (k)}<kbd>{k}</kbd>{/each}
+									{#each it.keys as k (k)}<kbd>{k.length === 1 ? fmtKbd(k) : k}</kbd>{/each}
 								</span>
 								<span class="lbl">{it.label}</span>
 							</li>
@@ -104,10 +105,6 @@
 				</section>
 			{/each}
 		</div>
-
-		<footer class="foot">
-			<span class="dim text-xs">on Windows / Linux, ⌘ is Ctrl</span>
-		</footer>
 	</div>
 </Dialog>
 
@@ -172,11 +169,5 @@
 		color: var(--text);
 		font-size: var(--font-size-sm);
 		min-width: 0;
-	}
-
-	.foot {
-		flex-shrink: 0;
-		padding: 0.45rem 0.75rem;
-		border-top: var(--rule-width) solid var(--rule);
 	}
 </style>

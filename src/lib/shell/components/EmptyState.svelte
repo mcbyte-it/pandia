@@ -4,6 +4,7 @@
 	import { docDetectAndConvert } from '$lib/ipc/doc';
 	import { buildDemoSource } from '../logic/demo';
 	import { stem } from '$lib/util/path';
+	import { fmtKbd } from '$lib/util/platform';
 	import { detectFormat, formatLabel } from '../logic/detect-format';
 	import URLFetchBox from './URLFetchBox.svelte';
 	import RecentsBlock from './RecentsBlock.svelte';
@@ -83,7 +84,7 @@
 					bind:value={pasteText}
 					onpaste={onPasteCapture}
 					onkeydown={onPasteKeydown}
-					placeholder={'Paste JSON · YAML · XML · CSV · cURL — loads instantly'}
+					placeholder="Paste JSON · YAML · XML · CSV · cURL — loads instantly"
 					rows="5"
 					disabled={busy}
 					spellcheck="false"
@@ -97,7 +98,7 @@
 			</div>
 			<div class="row dim text-sm">
 				<button class="link" onclick={onPickFile} disabled={busy}>pick a file…</button>
-				<span>· or drop one anywhere · ⌘⏎ to load typed text</span>
+				<span>· or drop one anywhere · {fmtKbd('⌘⏎')} to load typed text</span>
 			</div>
 		</section>
 
