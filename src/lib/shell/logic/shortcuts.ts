@@ -22,7 +22,7 @@ const MENU_BY_COMBO: Record<string, string> = {
 	Digit2: 'toggle_code_view',
 	Digit3: 'toggle_form_view',
 	Digit4: 'toggle_graph_view',
-	Comma: 'open_settings',
+	Comma: 'settings_appearance',
 	'Shift+KeyV': 'validate_json',
 	KeyD: 'compare_files',
 	Slash: 'keyboard_shortcuts',

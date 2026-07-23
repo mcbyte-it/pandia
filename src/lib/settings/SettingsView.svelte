@@ -5,11 +5,14 @@
 	import BehaviorPanel from '$lib/settings/BehaviorPanel.svelte';
 	import LayoutPanel from '$lib/settings/LayoutPanel.svelte';
 	import DataPanel from '$lib/settings/DataPanel.svelte';
+	import { SETTINGS_TABS, type SettingsTab } from '$lib/settings/tabs';
 
 	interface Props {
 		onClose: () => void;
+		active: SettingsTab;
+		onSelectTab: (tab: SettingsTab) => void;
 	}
-	let { onClose }: Props = $props();
+	let { onClose, active, onSelectTab }: Props = $props();
 
 	let version: string | null = $state(null);
 	$effect(() => {
@@ -17,18 +20,6 @@
 			.then((v) => (version = v))
 			.catch(() => {});
 	});
-
-	type SettingsTab = 'appearance' | 'behavior' | 'layout' | 'data' | 'about';
-
-	const TABS = [
-		{ id: 'appearance', label: 'Appearance' },
-		{ id: 'behavior', label: 'Behavior' },
-		{ id: 'layout', label: 'Layout' },
-		{ id: 'data', label: 'Data' },
-		{ id: 'about', label: 'About' },
-	] as const satisfies ReadonlyArray<{ id: SettingsTab; label: string }>;
-
-	let active: SettingsTab = $state('appearance');
 
 	function onKey(e: KeyboardEvent) {
 		if (e.key === 'Escape') onClose();
@@ -46,11 +37,11 @@
 
 	<div class="body">
 		<nav class="nav" aria-label="settings categories">
-			{#each TABS as t (t.id)}
+			{#each SETTINGS_TABS as t (t.id)}
 				<button
 					class="nav-item"
 					class:active={active === t.id}
-					onclick={() => (active = t.id)}
+					onclick={() => onSelectTab(t.id)}
 					aria-current={active === t.id ? 'page' : undefined}>{t.label}</button
 				>
 			{/each}

@@ -22,6 +22,7 @@
 	import DocPane from '$lib/docpane/components/DocPane.svelte';
 	import HelpDialog from '$lib/shell/components/HelpDialog.svelte';
 	import SettingsView from '$lib/settings/SettingsView.svelte';
+	import type { SettingsTab } from '$lib/settings/tabs';
 	import Sidebar from './Sidebar.svelte';
 	import StatusBar from './StatusBar.svelte';
 	import RecoveryDialog from './RecoveryDialog.svelte';
@@ -147,8 +148,8 @@
 			sidebarPrefs.setActiveTab('schema');
 		},
 		toggleComparePicker,
-		openSettings: () => {
-			settingsOpen = true;
+		openSettings: (tab: SettingsTab = 'appearance') => {
+			settingsTab = tab;
 		},
 		openHelp: () => {
 			helpOpen = true;
@@ -325,7 +326,7 @@
 	});
 
 	let helpOpen = $state(false);
-	let settingsOpen = $state(false);
+	let settingsTab: SettingsTab | null = $state(null);
 
 	let paletteOpen = $state(false);
 	function openPalette() {
@@ -455,9 +456,6 @@
 		};
 	});
 
-	// On non-macOS the native-menu accelerators are unreliable, so JS drives shortcuts:
-	// match the keydown to the same menu id and re-emit menu-event, reusing the existing
-	// routers (shell + doc). matchMenuShortcut returns null on macOS, leaving it untouched.
 	function onWindowKeydown(e: KeyboardEvent) {
 		if (e.defaultPrevented) return; // a focused editor/input already handled it
 		const id = matchMenuShortcut(e);
@@ -596,9 +594,13 @@
 	<HelpDialog onClose={() => (helpOpen = false)} />
 {/if}
 
-{#if settingsOpen}
+{#if settingsTab}
 	<div class="settings-overlay">
-		<SettingsView onClose={() => (settingsOpen = false)} />
+		<SettingsView
+			active={settingsTab}
+			onSelectTab={(t) => (settingsTab = t)}
+			onClose={() => (settingsTab = null)}
+		/>
 	</div>
 {/if}
 

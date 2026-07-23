@@ -1,5 +1,6 @@
 import type { Command } from '$lib/palette/state/command-store.svelte';
 import type { OpenSource } from '$lib/ipc/types';
+import type { SettingsTab } from '$lib/settings/tabs';
 import { buildDemoSource } from './demo';
 
 export interface ShellCommandDeps {
@@ -15,7 +16,7 @@ export interface ShellCommandDeps {
 	toggleSidebar: () => void;
 	revealSchemaPanel: () => void;
 	toggleComparePicker: () => void;
-	openSettings: () => void;
+	openSettings: (tab?: SettingsTab) => void;
 	openHelp: () => void;
 	togglePalette: () => void;
 	clearRecents: () => void;
@@ -94,7 +95,7 @@ export function buildShellCommands(deps: ShellCommandDeps): Command[] {
 			label: 'Open Settings',
 			category: 'Navigate',
 			keybinding: '⌘,',
-			run: deps.openSettings,
+			run: () => deps.openSettings(),
 		},
 		...(deps.isDev
 			? ([
@@ -146,7 +147,11 @@ export function buildMenuRouteMap(deps: ShellCommandDeps): Record<string, () => 
 		keyboard_shortcuts: deps.openHelp,
 		view_website: deps.openWebsite,
 		report_issue: deps.reportIssue,
-		open_settings: deps.openSettings,
+		settings_appearance: () => deps.openSettings('appearance'),
+		settings_behavior: () => deps.openSettings('behavior'),
+		settings_layout: () => deps.openSettings('layout'),
+		settings_data: () => deps.openSettings('data'),
+		settings_about: () => deps.openSettings('about'),
 		about: () => void deps.showAbout(),
 		check_for_updates: () => void deps.checkForUpdates(),
 	};
