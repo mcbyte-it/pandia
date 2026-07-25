@@ -51,6 +51,10 @@ impl LazyDoc {
         self.source.as_str()
     }
 
+    pub fn root_element_spans(&self) -> Option<&[(u32, u32)]> {
+        self.root_index.as_deref()
+    }
+
     pub fn root_child_count(&self) -> Option<u32> {
         if let Some(idx) = &self.root_index {
             return Some(idx.len() as u32);

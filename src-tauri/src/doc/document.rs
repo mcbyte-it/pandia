@@ -12,6 +12,7 @@ use super::eager::{
     resolve_eager, slice_eager,
 };
 use super::export::{self, export as export_value, ExportFormat};
+use super::format::{self, InputFormat};
 use super::grid_filter::{row_passes, GridFilter};
 use super::history::History;
 use super::lazy::LazyDoc;
@@ -162,16 +163,26 @@ impl Document {
         Ok(())
     }
 
-    pub fn from_text(text: &str, source_path: Option<String>) -> DocResult<Self> {
-        let size = text.len() as u64;
-        Self::ensure_within_max(size)?;
+    fn parse(text: &str) -> DocResult<DocumentImpl> {
+        if text.len() as u64 >= LAZY_THRESHOLD_BYTES {
+            return Ok(DocumentImpl::Lazy(LazyDoc::new(text)?));
+        }
+        serde_json::from_str(text)
+            .map(DocumentImpl::Eager)
+            .map_err(|e| DocError::Parse(e.to_string()))
+    }
 
-        let inner = if size >= LAZY_THRESHOLD_BYTES {
-            DocumentImpl::Lazy(LazyDoc::new(text)?)
-        } else {
-            let v: Value =
-                serde_json::from_str(text).map_err(|e| DocError::Parse(e.to_string()))?;
-            DocumentImpl::Eager(v)
+    pub fn from_text(text: &str, source_path: Option<String>) -> DocResult<Self> {
+        Self::ensure_within_max(text.len() as u64)?;
+
+        let (inner, size) = match Self::parse(text) {
+            Ok(inner) => (inner, text.len() as u64),
+            Err(strict) => {
+                let hint = source_path.as_deref().and_then(format::hint_from_path);
+                let json = format::recover(text, hint).ok_or(strict)?;
+                Self::ensure_within_max(json.len() as u64)?;
+                (Self::parse(&json)?, json.len() as u64)
+            }
         };
 
         let mut doc = Self {
@@ -342,18 +353,48 @@ impl Document {
         self.source_path = Some(path);
     }
 
+    fn serialize_ndjson(&self) -> Option<String> {
+        match &self.inner {
+            DocumentImpl::Eager(Value::Array(items)) => {
+                let mut out = String::new();
+                for v in items {
+                    out.push_str(&serde_json::to_string(v).ok()?);
+                    out.push('\n');
+                }
+                Some(out)
+            }
+            DocumentImpl::Lazy(d) => {
+                let spans = d.root_element_spans()?;
+                let src = d.source();
+                let mut out = String::with_capacity(src.len() + spans.len());
+                for &(a, b) in spans {
+                    out.push_str(&src[a as usize..b as usize]);
+                    out.push('\n');
+                }
+                Some(out)
+            }
+            _ => None,
+        }
+    }
+
     pub fn save(&mut self, path: Option<String>) -> DocResult<SaveResult> {
         let target = path
             .or_else(|| self.file_path.clone())
             .ok_or_else(|| DocError::Edit("no file path — use Save As".into()))?;
-        let text = self.serialize()?;
-        let new_hash = blake3::hash(text.as_bytes());
+        let text = match format::hint_from_path(&target) {
+            Some(InputFormat::Ndjson) => match self.serialize_ndjson() {
+                Some(text) => text,
+                None => self.serialize()?,
+            },
+            _ => self.serialize()?,
+        };
         std::fs::write(&target, text)?;
         self.file_path = Some(target.clone());
         self.source_path = Some(target.clone());
         self.saved_version = self.version;
-        self.saved_hash = new_hash;
-        *self.hash_cache.lock() = Some((self.version, new_hash));
+        let saved_hash = self.compute_content_hash();
+        self.saved_hash = saved_hash;
+        *self.hash_cache.lock() = Some((self.version, saved_hash));
         Ok(SaveResult {
             path: target,
             version: self.version,
@@ -954,6 +995,199 @@ mod tests {
         ));
     }
 
+    fn temp_path(name: &str) -> String {
+        let mut p = std::env::temp_dir();
+        p.push(format!("pandia-{}-{name}", std::process::id()));
+        p.to_string_lossy().into_owned()
+    }
+
+    #[test]
+    fn opens_ndjson_as_an_array() {
+        let d = doc("{\"a\":1}\n{\"a\":2}\n{\"a\":3}\n");
+        let s = d.summary();
+        assert_eq!(s.root_kind, NodeKind::Array);
+        assert_eq!(s.root_child_count, Some(3));
+        assert_eq!(
+            d.get_value(&Path::root()).unwrap(),
+            serde_json::json!([{"a": 1}, {"a": 2}, {"a": 3}])
+        );
+    }
+
+    #[test]
+    fn opens_jsonc_with_comments_and_trailing_commas() {
+        let d = doc("{\n  // count\n  \"a\": 1,\n  \"b\": [2, 3,],\n}");
+        assert_eq!(
+            d.get_value(&Path::root()).unwrap(),
+            serde_json::json!({"a": 1, "b": [2, 3]})
+        );
+    }
+
+    #[test]
+    fn opens_json5() {
+        let d = doc("{unquoted: 'single', hex: 0xFF, trailing: .5,}");
+        assert_eq!(
+            d.get_value(&Path::root()).unwrap(),
+            serde_json::json!({"unquoted": "single", "hex": 255, "trailing": 0.5})
+        );
+    }
+
+    #[test]
+    fn opens_ndjson_and_jsonc_from_disk() {
+        for (name, body, want) in [
+            (
+                "open.ndjson",
+                "{\"a\":1}\n{\"a\":2}\n",
+                serde_json::json!([{"a": 1}, {"a": 2}]),
+            ),
+            (
+                "open.jsonc",
+                "/* header */\n{\"a\": 1} // tail",
+                serde_json::json!({"a": 1}),
+            ),
+            (
+                "open.json5",
+                "{a: +1, b: Infinity}",
+                serde_json::json!({"a": 1, "b": null}),
+            ),
+        ] {
+            let path = temp_path(name);
+            std::fs::write(&path, body).unwrap();
+            let d = Document::from_file(&path).expect(name);
+            assert_eq!(d.get_value(&Path::root()).unwrap(), want, "{name}");
+            let _ = std::fs::remove_file(&path);
+        }
+    }
+
+    #[test]
+    fn ndjson_still_reports_the_strict_error_when_truly_broken() {
+        let err = Document::from_text("{\"a\":1}\n{\"a\":\n", None).unwrap_err();
+        let DocError::Parse(msg) = err else {
+            panic!("expected a parse error");
+        };
+        assert!(msg.contains("line 2"), "{msg}");
+    }
+
+    #[test]
+    fn ndjson_extension_round_trips_through_save() {
+        let path = temp_path("roundtrip.ndjson");
+        std::fs::write(&path, "{\"a\":1}\n{\"a\":2}\n").unwrap();
+        let mut d = Document::from_file(&path).unwrap();
+
+        d.apply(&Op::SetValue {
+            path: Path(vec![PathSegment::Index(0), PathSegment::Key("a".into())]),
+            value: serde_json::json!(9),
+        })
+        .unwrap();
+        d.save(None).unwrap();
+
+        let written = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(written, "{\"a\":9}\n{\"a\":2}\n");
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn unedited_ndjson_saves_records_verbatim() {
+        let path = temp_path("verbatim.ndjson");
+        let mut body = String::new();
+        while body.len() < 11 * 1024 * 1024 {
+            body.push_str("{\"id\": 12345678901234567890, \"pad\": \"");
+            body.push_str(&"x".repeat(200));
+            body.push_str("\"}\n");
+        }
+        let lines = body.lines().count();
+        std::fs::write(&path, &body).unwrap();
+
+        let mut d = Document::from_file(&path).unwrap();
+        assert!(d.summary().lazy, "large NDJSON should be lazy");
+        assert_eq!(d.summary().root_child_count, Some(lines as u32));
+
+        let out = temp_path("verbatim-out.ndjson");
+        d.save(Some(out.clone())).unwrap();
+        assert_eq!(std::fs::read_to_string(&out).unwrap(), body);
+
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(&out);
+    }
+
+    #[test]
+    fn save_as_json_converts_ndjson_to_an_array() {
+        let src = temp_path("convert.ndjson");
+        std::fs::write(&src, "{\"a\":1}\n{\"a\":2}\n").unwrap();
+        let mut d = Document::from_file(&src).unwrap();
+
+        let dst = temp_path("convert.json");
+        d.save(Some(dst.clone())).unwrap();
+
+        let written = std::fs::read_to_string(&dst).unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&written).unwrap(),
+            serde_json::json!([{"a": 1}, {"a": 2}])
+        );
+        assert!(
+            written.contains('\n') && written.starts_with('['),
+            "{written}"
+        );
+
+        let _ = std::fs::remove_file(&src);
+        let _ = std::fs::remove_file(&dst);
+    }
+
+    #[test]
+    fn ndjson_save_falls_back_to_json_when_the_root_stops_being_an_array() {
+        let path = temp_path("rerooted.ndjson");
+        std::fs::write(&path, "{\"a\":1}\n{\"a\":2}\n").unwrap();
+        let mut d = Document::from_file(&path).unwrap();
+
+        d.apply(&Op::SetValue {
+            path: Path::root(),
+            value: serde_json::json!({"a": 1}),
+        })
+        .unwrap();
+        d.save(None).unwrap();
+
+        let written = std::fs::read_to_string(&path).unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&written).unwrap(),
+            serde_json::json!({"a": 1})
+        );
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn undo_to_a_saved_state_clears_dirty_for_every_dialect() {
+        for (name, body) in [
+            ("undo.json", r#"{"a": 1}"#),
+            ("undo.ndjson", "{\"a\":1}\n{\"a\":2}\n"),
+        ] {
+            let path = temp_path(name);
+            std::fs::write(&path, body).unwrap();
+            let mut d = Document::from_file(&path).unwrap();
+
+            d.apply(&Op::SetValue {
+                path: Path::root(),
+                value: serde_json::json!({"edited": true}),
+            })
+            .unwrap();
+            d.save(None).unwrap();
+            assert!(!d.summary().dirty, "{name}: clean right after save");
+
+            d.apply(&Op::SetValue {
+                path: Path::root(),
+                value: serde_json::json!({"edited": false}),
+            })
+            .unwrap();
+            assert!(d.summary().dirty, "{name}: dirty after a fresh edit");
+
+            d.undo().unwrap();
+            assert!(
+                !d.summary().dirty,
+                "{name}: undo back to the saved content is not dirty"
+            );
+
+            let _ = std::fs::remove_file(&path);
+        }
+    }
+
     #[test]
     fn save_writes_edits_and_clears_dirty() {
         let mut d = doc(r#"{"a": 1}"#);
@@ -1051,9 +1285,18 @@ mod tests {
     #[test]
     fn invalid_lazy_doc_returns_parse_error() {
         let pad: String = std::iter::repeat('x').take(11 * 1024 * 1024).collect();
-        let bad = format!(r#"{{"pad": "{}",}}"#, pad); // trailing comma
+        let bad = format!(r#"{{"pad": "{}"#, pad);
         let err = Document::from_text(&bad, None).unwrap_err();
         assert!(matches!(err, DocError::Parse(_)));
+    }
+
+    #[test]
+    fn large_jsonc_doc_recovers_onto_the_lazy_path() {
+        let pad = "x".repeat(11 * 1024 * 1024);
+        let text = format!("// header\n{{\"pad\": \"{pad}\",}}");
+        let d = doc(&text);
+        assert!(d.summary().lazy);
+        assert_eq!(d.summary().root_kind, NodeKind::Object);
     }
 
     #[test]
@@ -1743,8 +1986,6 @@ mod tests {
 
     #[test]
     fn get_rows_at_serialized_preserves_big_integers() {
-        // Mirrors what doc_get_rows_at does: the selected rows are serialized to
-        // text in Rust, so a big integer survives instead of rounding through f64.
         let d = doc(r#"[{"id": 123456789012345678}, {"id": 2}]"#);
         let vals = d.get_rows_at(&Path::root(), &[0]).unwrap();
         let json = serde_json::to_string_pretty(&vals).unwrap();
@@ -1763,15 +2004,14 @@ mod tests {
                 {"id": "x"}
             ]"#);
         let cv = d.column_values(&Path::root(), "id", 100).unwrap();
-        // The big-int distinct value carries its exact literal as `label`, so the
-        // popover can show it correctly even though `value` rounds to f64 over IPC.
+
         let big = cv
             .values
             .iter()
             .find(|v| v.label.as_deref() == Some("123456789012345678"))
             .expect("big-int label present and exact");
         assert_eq!(big.count, 2);
-        // Non-numeric values get no label and fall back to frontend formatting.
+
         let s = cv
             .values
             .iter()

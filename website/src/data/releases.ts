@@ -8,6 +8,32 @@ export interface Release {
 
 export const releases: Release[] = [
 	{
+		version: '1.0.4',
+		date: 'July 25, 2026',
+		tag: 'Stable',
+		tagKind: 'stable',
+		groups: [
+			{
+				label: 'Fixes',
+				items: [
+					'NDJSON and JSON Lines files now open. A `.ndjson` or `.jsonl` file loads as an array of its records — one value per line, pretty-printed records, blank lines and CRLF all handled — instead of failing with "trailing characters at line 2".',
+					'JSONC files now open. Line and block comments and trailing commas are accepted, so a `tsconfig.jsonc` or any commented config loads straight away.',
+					'JSON5 files now open. Unquoted keys, single-quoted strings, hex numbers, leading and trailing decimal points, `+1`, `Infinity`, `NaN` and escaped line continuations are all understood.',
+					'Files saved with a UTF-8 byte order mark now open. These are common on Windows and previously failed on the very first character.',
+					'`.jsonl` and `.ndjson` were missing from the Open dialog, so those files could not even be selected. All six extensions now appear in Open, in the recent-files picker and in Compare.',
+					'Undoing back to the last saved state no longer leaves the tab marked as unsaved.',
+				],
+			},
+			{
+				label: 'Improvements',
+				items: [
+					'NDJSON files round-trip. Saving a `.ndjson` or `.jsonl` file writes one record per line again rather than silently rewriting it as a JSON array, and untouched records are written back byte for byte. Save As picks the format from the extension you choose.',
+					'Numbers keep every digit through all of this. 64-bit IDs and snowflakes in an NDJSON or JSON5 file stay exact, and multi-gigabyte NDJSON still opens on the streaming path.',
+				],
+			},
+		],
+	},
+	{
 		version: '1.0.3',
 		date: 'July 23, 2026',
 		tag: 'Stable',
