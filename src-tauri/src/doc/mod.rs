@@ -4,6 +4,7 @@ pub mod diff;
 pub mod document;
 pub mod eager;
 pub mod export;
+pub mod format;
 pub mod grid_filter;
 pub mod history;
 pub mod jobs;

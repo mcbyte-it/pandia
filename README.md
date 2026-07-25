@@ -46,7 +46,8 @@ Most JSON editors hit a wall around 50–100 MB — the tab freezes, the scrollb
 
 - **Lazy parsing above 10 MB.** Children parsed on demand; a root-array offset index gives O(slice) random access regardless of file size.
 - **Big-number safe.** Snowflake IDs, BigQuery int64s, Stripe IDs, nanosecond timestamps — preserved literally, never coerced through `f64`.
-- **Multi-format detect on paste.** JSON · JSONL · NDJSON · JSONC · JSON5 · GeoJSON · YAML · XML · CSV · cURL — pick the right one automatically.
+- **Every JSON dialect opens.** `.json` · `.jsonl` · `.ndjson` · `.jsonc` · `.json5` · `.geojson` — comments, trailing commas, bare keys, hex numbers and UTF-8 BOMs read without complaint. NDJSON loads as an array of its records and saves back one record per line.
+- **Multi-format detect on paste.** YAML · XML · CSV · cURL — converted to JSON automatically.
 - **Repair broken JSON.** Trailing commas, unquoted keys, single quotes, comments, BOMs, JSONP wrappers, unterminated strings — fixed before the editor gives up on you.
 
 ### Four lenses on the same document
@@ -88,8 +89,8 @@ Download the latest version for your platform from [releases](https://github.com
 
 | Chip | Download |
 |---|---|
-| Apple Silicon (M1 / M2 / M3 / M4 / M5 and newer) | [`Pandia_1.0.3_aarch64.dmg`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.3_aarch64.dmg) |
-| Intel | [`Pandia_1.0.3_x64.dmg`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.3_x64.dmg) |
+| Apple Silicon (M1 / M2 / M3 / M4 / M5 and newer) | [`Pandia_1.0.4_aarch64.dmg`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.4_aarch64.dmg) |
+| Intel | [`Pandia_1.0.4_x64.dmg`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.4_x64.dmg) |
 
 The macOS bundle is signed and notarised.
 
@@ -97,15 +98,15 @@ The macOS bundle is signed and notarised.
 
 | Type | Download |
 |---|---|
-| Installer | [`Pandia_1.0.3_x64-setup.exe`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.3_x64-setup.exe) |
-| MSI | [`Pandia_1.0.3_x64_en-US.msi`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.3_x64_en-US.msi) |
+| Installer | [`Pandia_1.0.4_x64-setup.exe`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.4_x64-setup.exe) |
+| MSI | [`Pandia_1.0.4_x64_en-US.msi`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.4_x64_en-US.msi) |
 
 ### Linux
 
 | Format | Download |
 |---|---|
-| AppImage | [`Pandia_1.0.3_amd64.AppImage`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.3_amd64.AppImage) |
-| Debian / Ubuntu | [`Pandia_1.0.3_amd64.deb`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.3_amd64.deb) |
+| AppImage | [`Pandia_1.0.4_amd64.AppImage`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.4_amd64.AppImage) |
+| Debian / Ubuntu | [`Pandia_1.0.4_amd64.deb`](https://github.com/hendurhance/pandia/releases/latest/download/Pandia_1.0.4_amd64.deb) |
 
 Linux bundles are GPG-signed; the public key is published with each release.
 

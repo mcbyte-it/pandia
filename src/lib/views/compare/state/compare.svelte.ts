@@ -2,6 +2,7 @@ import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import { docOpen, docClose, docSummary } from '$lib/ipc/doc';
 import type { DocHandle, OpenResult } from '$lib/ipc/types';
 import type { CompareTarget } from '$lib/views/compare/logic/compare-target';
+import { JSON_OPEN_FILTERS } from '$lib/util/file-types';
 
 export interface CompareDeps {
 	mainHandle: () => DocHandle | null;
@@ -55,7 +56,7 @@ export class CompareController {
 		const picked = await openDialog({
 			multiple: false,
 			directory: false,
-			filters: [{ name: 'JSON', extensions: ['json', 'jsonc', 'json5', 'geojson'] }],
+			filters: JSON_OPEN_FILTERS,
 		});
 		if (typeof picked !== 'string') return;
 		this.deps.setBusy(true);

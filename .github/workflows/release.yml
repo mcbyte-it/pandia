@@ -126,3 +126,26 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+  # ── Homebrew cask bump ──────────────────────────────────────────────────
+  # After the build, ping the Homebrew tap (hendurhance/homebrew-tap) to bump its
+  # cask. The tap's bump-cask workflow reads the latest *published* release, so this
+  # instant nudge only lands once you publish the drafted release above; the tap's
+  # daily cron is the safety net either way. Runs once (not per-matrix-leg).
+  #
+  # Needs a PAT in the TAP_DISPATCH_TOKEN secret with `contents: write` (or repo
+  # dispatch) on the tap — the built-in GITHUB_TOKEN cannot dispatch to another repo.
+  notify-homebrew:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger cask bump in tap
+        env:
+          TAP_DISPATCH_TOKEN: ${{ secrets.TAP_DISPATCH_TOKEN }}
+        run: |
+          curl -sSf -X POST \
+            -H "Authorization: Bearer $TAP_DISPATCH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/hendurhance/homebrew-tap/dispatches \
+            -d '{"event_type":"pandia-release"}'

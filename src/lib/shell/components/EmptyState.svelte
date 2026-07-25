@@ -4,6 +4,7 @@
 	import { docDetectAndConvert } from '$lib/ipc/doc';
 	import { buildDemoSource } from '../logic/demo';
 	import { stem } from '$lib/util/path';
+	import { JSON_OPEN_FILTERS } from '$lib/util/file-types';
 	import { fmtKbd } from '$lib/util/platform';
 	import { detectFormat, formatLabel } from '../logic/detect-format';
 	import URLFetchBox from './URLFetchBox.svelte';
@@ -24,7 +25,7 @@
 		const picked = await openDialog({
 			multiple: false,
 			directory: false,
-			filters: [{ name: 'JSON', extensions: ['json', 'jsonc', 'json5', 'geojson'] }],
+			filters: JSON_OPEN_FILTERS,
 		});
 		if (typeof picked !== 'string') return;
 		onOpenSource({ kind: 'file', path: picked });

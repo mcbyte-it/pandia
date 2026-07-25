@@ -11,6 +11,7 @@
 	import { updateCheck } from '$lib/shell/state/update-check.svelte';
 	import { loadOpenTabs, saveOpenTabs } from '$lib/shell/state/tabs-restore';
 	import { SANDBOX_ENABLED } from '$lib/util/flags';
+	import { JSON_OPEN_FILTERS } from '$lib/util/file-types';
 	import CommandPalette from '$lib/palette/CommandPalette.svelte';
 	import { commandRegistry } from '$lib/palette/state/command-store.svelte';
 	import {
@@ -128,7 +129,7 @@
 		const picked = await openDialog({
 			multiple: false,
 			directory: false,
-			filters: [{ name: 'JSON', extensions: ['json', 'jsonc', 'json5', 'geojson'] }],
+			filters: JSON_OPEN_FILTERS,
 		});
 		if (typeof picked !== 'string') return;
 		if (!(await maybeConfirmLargeFile(picked))) return;
