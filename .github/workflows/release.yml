@@ -127,14 +127,6 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-  # ── Homebrew cask bump ──────────────────────────────────────────────────
-  # After the build, ping the Homebrew tap (hendurhance/homebrew-tap) to bump its
-  # cask. The tap's bump-cask workflow reads the latest *published* release, so this
-  # instant nudge only lands once you publish the drafted release above; the tap's
-  # daily cron is the safety net either way. Runs once (not per-matrix-leg).
-  #
-  # Needs a PAT in the TAP_DISPATCH_TOKEN secret with `contents: write` (or repo
-  # dispatch) on the tap — the built-in GITHUB_TOKEN cannot dispatch to another repo.
   notify-homebrew:
     needs: release
     runs-on: ubuntu-latest
