@@ -113,6 +113,7 @@
 	let busy = $state(false);
 	let error: string | null = $state(null);
 	let viewMode: ViewMode = $state('tree');
+	let dismissedNoteFor = $state<string | null>(null);
 
 	let codeApi: CodeViewApi | null = $state(null);
 	let codeDirty = $state(false);
@@ -228,6 +229,10 @@
 		confirmLargeFile: (p: string) =>
 			confirmLargeFile ? confirmLargeFile(p) : Promise.resolve(true),
 	});
+
+	const recoveryNoteDismissed = $derived(
+		session.handle != null && dismissedNoteFor === String(session.handle),
+	);
 
 	const nav: DocNavController = new DocNavController({
 		tree,
@@ -593,7 +598,7 @@
 		</div>
 	{/if}
 
-	{#if error}
+	{#if error && !session.diagnosis}
 		<div class="banner banner-err">
 			<span class="err-text">{error}</span>
 			<button class="err-dismiss" onclick={() => (error = null)} aria-label="dismiss error"
@@ -604,6 +609,18 @@
 
 	{#if saveFlash && !error}
 		<div class="banner banner-saved"><Icon icon={Check} size="sm" /> {saveFlash}</div>
+	{/if}
+
+	{#if session.summary?.recoveryNote && !error && !recoveryNoteDismissed}
+		<div class="banner banner-info">
+			<span class="info-head">loaded with 1 cleanup</span>
+			<span class="info-list"><span class="info-item">{session.summary.recoveryNote}</span></span>
+			<button
+				class="info-dismiss"
+				onclick={() => (dismissedNoteFor = String(session.handle))}
+				aria-label="dismiss"><Icon icon={X} size="sm" /></button
+			>
+		</div>
 	{/if}
 
 	{#if session.repairInfo && !error}
@@ -632,7 +649,13 @@
 	{/if}
 
 	{#if !session.summary}
-		<EmptyState {busy} onOpenSource={session.loadFromSource} />
+		<EmptyState
+			{busy}
+			onOpenSource={session.loadFromSource}
+			diagnosis={session.diagnosis}
+			onFixDiagnosis={(t) => void session.applyDiagnosisFix(t)}
+			onDismissDiagnosis={() => (session.diagnosis = null)}
+		/>
 	{:else if viewMode === 'tree'}
 		<Breadcrumb
 			path={nav.selectedPath}

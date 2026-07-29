@@ -38,7 +38,7 @@ export function isRepairableError(error: string, kind?: IpcErrorKind | null): bo
 	);
 }
 
-async function readSourceText(source: OpenSource): Promise<string | null> {
+export async function readSourceText(source: OpenSource): Promise<string | null> {
 	if (source.kind === 'text') return source.text;
 	try {
 		return await readTextFile(source.path);

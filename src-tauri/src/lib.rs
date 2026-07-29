@@ -98,6 +98,7 @@ pub fn run() {
             commands::doc_validate_schema,
             commands::doc_generate_types,
             commands::doc_detect_and_convert,
+            commands::doc_diagnose,
             commands::doc_history,
             commands::doc_save,
             commands::doc_set_file_path,

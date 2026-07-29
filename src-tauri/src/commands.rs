@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::doc::backup::{self, BackupRecord};
 use crate::doc::detect::{detect_and_convert, DetectResult};
+use crate::doc::diagnose::{diagnose, Diagnosis};
 use crate::doc::diff::{compute_diff, DiffEntry};
 use crate::doc::document::{
     ApplyResult, ColumnValues, Document, HistoryView, ReplaceResult, SaveResult, SortedRow,
@@ -625,6 +626,11 @@ pub async fn doc_repair_text(text: String) -> Result<RepairResult, WireError> {
 #[tauri::command]
 pub async fn doc_detect_and_convert(text: String) -> Result<DetectResult, WireError> {
     run_blocking(move || Ok(detect_and_convert(&text))).await
+}
+
+#[tauri::command]
+pub async fn doc_diagnose(text: String) -> Result<Diagnosis, WireError> {
+    run_blocking(move || Ok(diagnose(&text))).await
 }
 
 #[tauri::command]

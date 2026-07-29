@@ -3,8 +3,6 @@ use std::path::Path as FsPath;
 
 use serde::de::IgnoredAny;
 
-/// A dialect that needs different handling from plain JSON. Plain `.json` and
-/// `.geojson` are absent on purpose: they change nothing on open or on save.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InputFormat {
     Ndjson,
@@ -23,15 +21,36 @@ pub fn hint_from_path(path: &str) -> Option<InputFormat> {
     }
 }
 
-/// Rewrites text that failed a strict parse into strict JSON, or `None` if it
-/// is simply broken — in which case the caller should surface the original
-/// `serde_json` error, which points at the real problem. The hint only orders
-/// the attempts; a mislabelled file still recovers.
-pub fn recover(text: &str, hint: Option<InputFormat>) -> Option<String> {
-    let body = text.strip_prefix('\u{feff}').unwrap_or(text);
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Recovered {
+    pub json: String,
+    pub note: Option<&'static str>,
+}
 
-    if body.len() != text.len() && is_valid_json(body) {
-        return Some(body.to_string());
+impl Recovered {
+    fn plain(json: String) -> Self {
+        Self { json, note: None }
+    }
+
+    fn noted(json: String, note: &'static str) -> Self {
+        Self {
+            json,
+            note: Some(note),
+        }
+    }
+}
+
+pub fn recover(text: &str, hint: Option<InputFormat>) -> Option<Recovered> {
+    let (body, note) = strip_leading_junk(text);
+    if let Some(note) = note {
+        if is_valid_json(body) {
+            return Some(Recovered::noted(body.to_string(), note));
+        }
+    }
+    if let Some(unwrapped) = unwrap_quoted(body) {
+        if is_valid_json(&unwrapped.json) {
+            return Some(unwrapped);
+        }
     }
 
     let attempts = if hint == Some(InputFormat::Relaxed) {
@@ -40,14 +59,104 @@ pub fn recover(text: &str, hint: Option<InputFormat>) -> Option<String> {
         [Attempt::Ndjson, Attempt::Relaxed, Attempt::RelaxedNdjson]
     };
 
-    attempts.into_iter().find_map(|attempt| {
+    let dialect = attempts.into_iter().find_map(|attempt| {
         match attempt {
             Attempt::Ndjson => ndjson_to_array(body),
             Attempt::Relaxed => relaxed_to_json(body),
             Attempt::RelaxedNdjson => relaxed_to_json(body).as_deref().and_then(ndjson_to_array),
         }
         .filter(|candidate| is_valid_json(candidate))
+    });
+    if let Some(json) = dialect {
+        return Some(match note {
+            Some(note) => Recovered::noted(json, note),
+            None => Recovered::plain(json),
+        });
+    }
+
+    let inner = unwrap_quoted(body)?;
+    let json = relaxed_to_json(&inner.json)
+        .or_else(|| ndjson_to_array(&inner.json))
+        .filter(|c| is_valid_json(c))?;
+    Some(Recovered {
+        json,
+        note: inner.note,
     })
+}
+
+const LEADING_JUNK: &[char] = &[
+    '\u{feff}', // byte order mark
+    '\u{200b}', // zero-width space
+    '\u{200c}', // zero-width non-joiner
+    '\u{200d}', // zero-width joiner
+    '\u{2060}', // word joiner
+    '\u{200e}', // left-to-right mark
+    '\u{200f}', // right-to-left mark
+    '\u{00a0}', // non-breaking space
+    '\u{0000}', // NUL
+];
+
+fn strip_leading_junk(text: &str) -> (&str, Option<&'static str>) {
+    let body = text.trim_start_matches(LEADING_JUNK);
+    if body.len() == text.len() {
+        return (text, None);
+    }
+    (
+        body,
+        Some("Removed an invisible character before the first value"),
+    )
+}
+
+fn closing_quote_for(open: char) -> Option<char> {
+    match open {
+        '\'' => Some('\''),
+        '"' => Some('"'),
+        '`' => Some('`'),
+        '\u{2018}' => Some('\u{2019}'), // ‘ ’
+        '\u{201c}' => Some('\u{201d}'), // “ ”
+        _ => None,
+    }
+}
+
+fn is_closing_quote(c: char) -> bool {
+    matches!(c, '\'' | '"' | '`' | '\u{2019}' | '\u{201d}')
+}
+
+fn unwrap_quoted(text: &str) -> Option<Recovered> {
+    let trimmed = text.trim();
+    let mut chars = trimmed.chars();
+    let first = chars.next()?;
+    let last = chars.next_back()?; // None for a 1-char input: nothing to unwrap
+
+    let (inner, note, was_double) = match (closing_quote_for(first), is_closing_quote(last)) {
+        (Some(expected), true) if last == expected => (
+            &trimmed[first.len_utf8()..trimmed.len() - last.len_utf8()],
+            "Removed the quotes wrapping the document — it was quoted text, not JSON",
+            first == '"',
+        ),
+        (Some(_), _) => (
+            &trimmed[first.len_utf8()..],
+            "Removed a stray quote before the first value",
+            false,
+        ),
+        (None, true) => (
+            &trimmed[..trimmed.len() - last.len_utf8()],
+            "Removed a stray quote after the last value",
+            false,
+        ),
+        _ => return None,
+    };
+
+    let inner = inner.trim();
+    if inner.is_empty() {
+        return None;
+    }
+    let json = if was_double && inner.contains("\\\"") {
+        super::repair::unescape(inner)
+    } else {
+        inner.to_string()
+    };
+    Some(Recovered::noted(json, note))
 }
 
 #[derive(Clone, Copy)]
@@ -439,7 +548,7 @@ mod tests {
     use super::*;
 
     fn recovered(text: &str) -> String {
-        recover(text, None).expect("recoverable")
+        recover(text, None).expect("recoverable").json
     }
 
     fn value(text: &str) -> serde_json::Value {
@@ -452,12 +561,79 @@ mod tests {
         assert_eq!(hint_from_path("log.JSONL"), Some(InputFormat::Ndjson));
         assert_eq!(hint_from_path("tsconfig.jsonc"), Some(InputFormat::Relaxed));
         assert_eq!(hint_from_path("c.json5"), Some(InputFormat::Relaxed));
-        // Plain JSON needs no hint — it never reaches recovery, and it saves
-        // through the same path as an unrecognised extension.
         assert_eq!(hint_from_path("d.json"), None);
         assert_eq!(hint_from_path("d.geojson"), None);
         assert_eq!(hint_from_path("README.md"), None);
         assert_eq!(hint_from_path("Makefile"), None);
+    }
+
+    #[test]
+    fn quote_wrappers_are_unwrapped_not_read_as_strings() {
+        let body = r#"{"orderId":917399,"shortSideTt":1.25}"#;
+        let want = serde_json::json!({"orderId": 917399, "shortSideTt": 1.25});
+        for (name, text) in [
+            ("both single", format!("'{body}'")),
+            ("leading single only", format!("'{body}")),
+            ("trailing single only", format!("{body}'")),
+            ("both backticks", format!("`{body}`")),
+            ("smart quotes", format!("\u{2018}{body}\u{2019}")),
+            ("surrounded by whitespace", format!("  '{body}'  ")),
+        ] {
+            let r = recover(&text, None).unwrap_or_else(|| panic!("{name} should recover"));
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(&r.json).unwrap(),
+                want,
+                "{name}"
+            );
+            assert!(r.note.is_some(), "{name} should carry a note");
+        }
+    }
+
+    #[test]
+    fn double_quoted_wrapper_unescapes_its_payload() {
+        let r = recover(r#""{\"a\":1,\"b\":[2,3]}""#, None).expect("recovers");
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&r.json).unwrap(),
+            serde_json::json!({"a": 1, "b": [2, 3]})
+        );
+    }
+
+    #[test]
+    fn quoted_ndjson_recovers_through_both_passes() {
+        let r = recover("'{\"a\":1}\n{\"a\":2}'", None).expect("recovers");
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&r.json).unwrap(),
+            serde_json::json!([{"a": 1}, {"a": 2}])
+        );
+    }
+
+    #[test]
+    fn leading_invisible_characters_are_stripped() {
+        for ch in [
+            '\u{feff}', '\u{200b}', '\u{2060}', '\u{200e}', '\u{a0}', '\u{0}',
+        ] {
+            let text = format!("{ch}{{\"a\":1}}");
+            let r = recover(&text, None).unwrap_or_else(|| panic!("{ch:?} should recover"));
+            assert_eq!(
+                serde_json::from_str::<serde_json::Value>(&r.json).unwrap(),
+                serde_json::json!({"a": 1}),
+                "{ch:?}"
+            );
+            assert!(r.note.is_some(), "{ch:?} should carry a note");
+        }
+    }
+
+    #[test]
+    fn invisible_characters_inside_strings_are_left_alone() {
+        let d: serde_json::Value =
+            serde_json::from_str("{\"a\":\"x\u{200b}y\"}").expect("valid as-is");
+        assert_eq!(d["a"].as_str().unwrap(), "x\u{200b}y");
+    }
+
+    #[test]
+    fn dialect_recoveries_carry_no_note() {
+        assert_eq!(recover("{\"a\":1}\n{\"a\":2}\n", None).unwrap().note, None);
+        assert_eq!(recover("{/* c */ \"a\": 1,}", None).unwrap().note, None);
     }
 
     #[test]
@@ -606,7 +782,6 @@ mod tests {
 
     #[test]
     fn unterminated_input_terminates_the_scan() {
-        // Only asserting that these return rather than hang or panic.
         let _ = recover("{\"a\": \"unclosed", None);
         let _ = recover("{'a': 'unclosed", None);
         let _ = recover("{a: 1 /* unclosed", None);

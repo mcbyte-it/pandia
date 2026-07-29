@@ -1,5 +1,6 @@
 pub mod backup;
 pub mod detect;
+pub mod diagnose;
 pub mod diff;
 pub mod document;
 pub mod eager;

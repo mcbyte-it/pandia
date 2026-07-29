@@ -8,6 +8,32 @@ export interface Release {
 
 export const releases: Release[] = [
 	{
+		version: '1.0.5',
+		date: 'July 29, 2026',
+		tag: 'Stable',
+		tagKind: 'stable',
+		groups: [
+			{
+				label: 'Fixes',
+				items: [
+					'JSON wrapped in quotes now opens as your data. In 1.0.4 a document copied out of code, a shell command or a spreadsheet cell — `\'{"orderId":917399}\'` — loaded as one long piece of text instead of an object. Single quotes, smart quotes and backticks are all understood, at either end or both.',
+					'A stray quote at only one end, which is what a slightly-short selection leaves behind, no longer stops the file opening.',
+					'Invisible characters before the first bracket no longer break a paste. 1.0.4 handled the byte order mark; zero-width spaces, word joiners, direction marks and nulls now go too — the ones that made a file fail with nothing visibly wrong, where deleting a single character you could not see fixed it.',
+					'Pasting something Pandia could not read used to empty the box, so you had to go back and copy it again. Your text now stays put.',
+				],
+			},
+			{
+				label: 'Improvements',
+				items: [
+					'Error messages say what is actually wrong. `parse error: expected value at line 1 column 1` was the same sentence for a stray quote, a bare word and an empty document; you now get *One comma too many*, *The document is cut off*, *A property has no value* — with the offending character marked in a snippet of your own text.',
+					'One-click fixes. Where the problem is repairable the message carries a button that applies it and reloads, instead of leaving you to hunt through a long line by hand.',
+					'Opening a YAML, XML, CSV or cURL file now says so and offers to convert it. Pandia has always done this for pasted text; as a file it used to report a stray byte somewhere in the middle.',
+					'Every way in explains itself — paste, the file picker, drag-and-drop, recent files and URL fetch. Previously only some of them did.',
+				],
+			},
+		],
+	},
+	{
 		version: '1.0.4',
 		date: 'July 25, 2026',
 		tag: 'Stable',
