@@ -9,16 +9,25 @@ import {
 	docRedo,
 	docSave,
 	docBackupClear,
+	docDiagnose,
 	IpcError,
 	type IpcErrorKind,
 } from '$lib/ipc/doc';
-import type { ApplyResult, DocHandle, Op, OpenResult, OpenSource, Path } from '$lib/ipc/types';
+import type {
+	ApplyResult,
+	Diagnosis,
+	DocHandle,
+	Op,
+	OpenResult,
+	OpenSource,
+	Path,
+} from '$lib/ipc/types';
 import { isExpandable, rootRow } from '$lib/views/tree/logic/model';
 import { basename } from '$lib/util/path';
 import type { TreeRowsController } from '$lib/views/tree/state/tree-rows.svelte';
 import type { FindController } from '$lib/find/state/find.svelte';
 import type { CompareController } from '$lib/views/compare/state/compare.svelte';
-import { runAutoRepair, type RepairInfo } from '../logic/doc-repair';
+import { runAutoRepair, readSourceText, type RepairInfo } from '../logic/doc-repair';
 import { behaviorPrefs } from '$lib/settings/state/behavior-prefs.svelte';
 import { addRecent } from '$lib/shell/state/recents-store.svelte';
 
@@ -49,6 +58,7 @@ export class DocSessionController {
 	sourceName: string | null = $state(null);
 
 	repairInfo: RepairInfo | null = $state(null);
+	diagnosis: Diagnosis | null = $state(null);
 
 	private lastErrorKind: IpcErrorKind | null = null;
 
@@ -81,7 +91,7 @@ export class DocSessionController {
 	loadFromSource = async (source: OpenSource) => {
 		if (source.kind === 'file' && this.deps.confirmLargeFile) {
 			const proceed = await this.deps.confirmLargeFile(source.path);
-			if (!proceed) return;
+			if (!proceed) return false;
 		}
 		const name = source.kind === 'file' ? source.path : (source.name ?? '(inline)');
 		await this.load(() => docOpen(source), name);
@@ -103,6 +113,22 @@ export class DocSessionController {
 		if (source.kind === 'file' && this.deps.getError() === null) {
 			addRecent(source.path, undefined, this.summary?.sourceSize);
 		}
+		if (this.deps.getError() === null) return true;
+
+		const text = await readSourceText(source);
+		if (text != null) {
+			try {
+				this.diagnosis = await docDiagnose(text);
+			} catch {
+				this.diagnosis = null;
+			}
+		}
+		return false;
+	};
+
+	applyDiagnosisFix = async (text: string): Promise<boolean> => {
+		this.diagnosis = null;
+		return this.loadFromSource({ kind: 'text', text, name: this.sourceName ?? 'pasted.json' });
 	};
 
 	reset = async () => {
@@ -119,6 +145,7 @@ export class DocSessionController {
 		this.summary = null;
 		this.sourceName = null;
 		this.repairInfo = null;
+		this.diagnosis = null;
 		this.deps.tree.setRows([]);
 		this.deps.setSelectedPath(null);
 		this.deps.clearViewState();

@@ -13,6 +13,28 @@ export interface NodeView {
 	sizeHint: number;
 }
 
+export interface DiagnosisExcerpt {
+	text: string;
+	caret: number;
+	line: number;
+	column: number;
+	clippedStart: boolean;
+	clippedEnd: boolean;
+}
+
+export interface DiagnosisFix {
+	label: string;
+	text: string;
+	warnings: string[];
+}
+
+export interface Diagnosis {
+	title: string;
+	detail: string;
+	excerpt: DiagnosisExcerpt | null;
+	fix: DiagnosisFix | null;
+}
+
 export interface Summary {
 	rootKind: NodeKind;
 	rootChildCount: number | null;
@@ -20,10 +42,9 @@ export interface Summary {
 	sourceSize: number;
 	lazy: boolean;
 	version: number;
-
 	dirty: boolean;
-
 	fileBacked: boolean;
+	recoveryNote: string | null;
 }
 
 export interface SaveResult {

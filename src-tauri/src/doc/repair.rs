@@ -321,7 +321,7 @@ fn basic_cleanup(json: &str, warnings: &mut Vec<String>) -> String {
     }
 
     static JSONP_RE: Lazy<Regex> =
-        Lazy::new(|| Regex::new(r#"^\w+\s*\(\s*([\s\S]*?)\s*\)$"#).unwrap());
+        Lazy::new(|| Regex::new(r#"^\w+\s*\(\s*([\s\S]*?)\s*\)\s*;?\s*$"#).unwrap());
     if let Some(caps) = JSONP_RE.captures(&s) {
         if let Some(m) = caps.get(1) {
             s = m.as_str().trim().to_string();

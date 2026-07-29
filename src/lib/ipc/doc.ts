@@ -6,6 +6,7 @@ import type {
 	BackupRecord,
 	ColumnSchema,
 	DetectResult,
+	Diagnosis,
 	DiffEntry,
 	DocHandle,
 	ExportFormat,
@@ -255,6 +256,10 @@ export function docGenerateTypes(
 
 export function docDetectAndConvert(text: string): Promise<DetectResult> {
 	return call<DetectResult>('doc_detect_and_convert', { text });
+}
+
+export function docDiagnose(text: string): Promise<Diagnosis> {
+	return call<Diagnosis>('doc_diagnose', { text });
 }
 
 export function docHistory(handle: DocHandle): Promise<HistoryView> {

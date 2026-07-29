@@ -54,6 +54,7 @@ pub struct Document {
     pub source_path: Option<String>,
     pub file_path: Option<String>,
     pub source_size: u64,
+    pub recovery_note: Option<String>,
     pub version: u64,
     pub saved_version: u64,
     saved_hash: blake3::Hash,
@@ -143,6 +144,7 @@ pub struct Summary {
     pub version: u64,
     pub dirty: bool,
     pub file_backed: bool,
+    pub recovery_note: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -175,13 +177,14 @@ impl Document {
     pub fn from_text(text: &str, source_path: Option<String>) -> DocResult<Self> {
         Self::ensure_within_max(text.len() as u64)?;
 
-        let (inner, size) = match Self::parse(text) {
-            Ok(inner) => (inner, text.len() as u64),
+        let (inner, size, recovery_note) = match Self::parse(text) {
+            Ok(inner) => (inner, text.len() as u64, None),
             Err(strict) => {
                 let hint = source_path.as_deref().and_then(format::hint_from_path);
-                let json = format::recover(text, hint).ok_or(strict)?;
-                Self::ensure_within_max(json.len() as u64)?;
-                (Self::parse(&json)?, json.len() as u64)
+                let r = format::recover(text, hint).ok_or(strict)?;
+                Self::ensure_within_max(r.json.len() as u64)?;
+                let size = r.json.len() as u64;
+                (Self::parse(&r.json)?, size, r.note.map(str::to_string))
             }
         };
 
@@ -190,6 +193,7 @@ impl Document {
             source_path,
             file_path: None,
             source_size: size,
+            recovery_note,
             version: 0,
             saved_version: 0,
             saved_hash: blake3::Hash::from_bytes([0u8; 32]),
@@ -265,6 +269,7 @@ impl Document {
             version: self.version,
             dirty: self.is_dirty(),
             file_backed: self.file_path.is_some(),
+            recovery_note: self.recovery_note.clone(),
         }
     }
 

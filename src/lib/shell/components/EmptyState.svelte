@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { open as openDialog } from '@tauri-apps/plugin-dialog';
-	import type { DetectKind, OpenSource } from '$lib/ipc/types';
+	import type { Diagnosis, DetectKind, OpenSource } from '$lib/ipc/types';
 	import { docDetectAndConvert } from '$lib/ipc/doc';
+	import PasteDiagnostic from './PasteDiagnostic.svelte';
 	import { buildDemoSource } from '../logic/demo';
 	import { stem } from '$lib/util/path';
 	import { JSON_OPEN_FILTERS } from '$lib/util/file-types';
@@ -12,10 +13,13 @@
 
 	interface Props {
 		busy: boolean;
-		onOpenSource: (source: OpenSource) => void;
+		onOpenSource: (source: OpenSource) => Promise<boolean>;
+		diagnosis: Diagnosis | null;
+		onFixDiagnosis: (text: string) => void;
+		onDismissDiagnosis: () => void;
 	}
 
-	let { busy, onOpenSource }: Props = $props();
+	let { busy, onOpenSource, diagnosis, onFixDiagnosis, onDismissDiagnosis }: Props = $props();
 
 	let pasteText = $state('');
 	const detected = $derived(detectFormat(pasteText));
@@ -32,13 +36,19 @@
 	}
 
 	async function openFromText(text: string, baseName: string) {
+		let source: OpenSource = { kind: 'text', text, name: baseName };
 		try {
 			const r = await docDetectAndConvert(text);
-			const finalText = r.error == null ? r.json : text;
-			onOpenSource({ kind: 'text', text: finalText, name: renameForDetect(baseName, r.kind) });
-		} catch {
-			onOpenSource({ kind: 'text', text, name: baseName });
+			if (r.error == null) {
+				source = { kind: 'text', text: r.json, name: renameForDetect(baseName, r.kind) };
+			}
+		} catch {}
+
+		if (await onOpenSource(source)) {
+			pasteText = '';
+			return;
 		}
+		pasteText = text;
 	}
 
 	function renameForDetect(base: string, kind: DetectKind): string {
@@ -50,6 +60,7 @@
 		const text = e.clipboardData?.getData('text');
 		if (text && text.trim()) {
 			e.preventDefault();
+			pasteText = text.trim();
 			void openFromText(text.trim(), 'pasted.json');
 		}
 	}
@@ -97,6 +108,9 @@
 					</span>
 				{/if}
 			</div>
+			{#if diagnosis}
+				<PasteDiagnostic {diagnosis} {busy} onFix={onFixDiagnosis} onDismiss={onDismissDiagnosis} />
+			{/if}
 			<div class="row dim text-sm">
 				<button class="link" onclick={onPickFile} disabled={busy}>pick a file…</button>
 				<span>· or drop one anywhere · {fmtKbd('⌘⏎')} to load typed text</span>
