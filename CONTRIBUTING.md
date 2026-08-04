@@ -51,14 +51,12 @@ Before submitting a bug report:
 
 1. **Search existing issues** to avoid duplicates
 2. **Update to the latest version** to see if the bug persists
-3. **Collect information** about the bug:
-   - Operating system and version
-   - Pandia version
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Screenshots if applicable
+3. **Collect information** about the bug — the form asks for your Pandia version, install
+   source, OS and architecture, affected views, and whether it survives a cleared app-data
+   folder. It also gives you the per-OS commands to grab your preference store and console
+   output. Have those ready.
 
-**Submit a bug report** by [creating a new issue](https://github.com/hendurhance/pandia/issues/new) with the `bug` label.
+**Submit a bug report** with the [bug report form](https://github.com/hendurhance/pandia/issues/new?template=bug_report.yml). The `bug` label is applied for you.
 
 ### Suggesting Features
 
@@ -68,7 +66,7 @@ We welcome feature suggestions! Before submitting:
 2. **Consider the scope** — does this fit Pandia's goals? Pandia is a focused, native JSON workbench, not a kitchen-sink tool.
 3. **Provide context** — why is this feature needed?
 
-**Submit a feature request** by [creating a new issue](https://github.com/hendurhance/pandia/issues/new) with the `enhancement` label.
+**Submit a feature request** with the [feature request form](https://github.com/hendurhance/pandia/issues/new?template=feature_request.yml). The `enhancement` label is applied for you. If the idea is still half-formed, open an [Idea discussion](https://github.com/hendurhance/pandia/discussions/categories/ideas) first.
 
 ### Pull Requests
 

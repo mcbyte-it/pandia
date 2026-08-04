@@ -1,0 +1,156 @@
+name: Bug report
+description: Something in Pandia is broken or behaves wrong.
+title: '[Bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Eight required fields, half of them a single click. The version, install source, and
+        clean-profile answers are what make a report reproducible — please don't skip them.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before filing
+      options:
+        - label: I searched [open and closed issues](https://github.com/hendurhance/pandia/issues?q=is%3Aissue) and this isn't a duplicate.
+          required: true
+        - label: I'm on the [latest release](https://github.com/hendurhance/pandia/releases/latest) (or I've said below why I'm not).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The actual behaviour. Screenshots or a short screen recording help a lot.
+      placeholder: Switching to Grid view on a 40 MB array shows empty rows until I resize the window.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      placeholder: Rows render immediately, like they do in Tree view.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered, starting from a fresh launch. If you can't reproduce reliably, say how often it happens.
+      value: |
+        1. Launch Pandia
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Pandia version
+      description: Settings → About (`Cmd/Ctrl` + `,`). Please give the exact number, not "latest".
+      placeholder: 1.0.5
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: How you installed it
+      options:
+        - macOS — .dmg (Apple Silicon / aarch64)
+        - macOS — .dmg (Intel / x64)
+        - macOS — Homebrew cask
+        - Windows — .exe installer (NSIS)
+        - Windows — .msi
+        - Linux — .AppImage
+        - Linux — .deb
+        - Built from source
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS version and CPU architecture
+      placeholder: macOS 15.3 · arm64  —  or  Windows 11 23H2 · x64  —  or  Ubuntu 24.04 · x86_64
+    validations:
+      required: true
+
+  - type: dropdown
+    id: clean-profile
+    attributes:
+      label: Does it still happen with app data cleared?
+      description: |
+        Quit Pandia, move the app-data folder aside, relaunch, and try again. Move it back afterwards to restore your settings.
+
+        - macOS — `mv ~/Library/Application\ Support/com.pandia.ide ~/pandia-appdata-backup`
+        - Windows (PowerShell) — `Move-Item "$env:APPDATA\com.pandia.ide" "$env:USERPROFILE\pandia-appdata-backup"`
+        - Linux — `mv ~/.local/share/com.pandia.ide ~/pandia-appdata-backup`
+      options:
+        - Yes — still broken on a clean profile
+        - No — clearing app data fixed it
+        - Haven't tried
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: views
+    attributes:
+      label: Which views are affected
+      options:
+        - label: Tree
+        - label: Code
+        - label: Grid
+        - label: Graph
+        - label: Compare / diff
+        - label: Settings
+        - label: Not view-specific (open, save, export, type generation, schema validation, updater…)
+
+  - type: textarea
+    id: settings-store
+    attributes:
+      label: Preference store
+      description: |
+        Paste `pandia-settings.json`. It holds preferences only — no file contents, no credentials.
+
+        - macOS — `cat ~/Library/Application\ Support/com.pandia.ide/pandia-settings.json`
+        - Windows (PowerShell) — `Get-Content "$env:APPDATA\com.pandia.ide\pandia-settings.json"`
+        - Linux — `cat ~/.local/share/com.pandia.ide/pandia-settings.json`
+
+        A listing of that folder (`ls -la` / `dir`) is useful too if a file looks missing or corrupt.
+      render: json
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console or terminal output
+      description: |
+        Launch Pandia from a terminal so stdout and stderr are visible, reproduce the bug, then paste what appears. Right-click → Inspect Element → Console also works.
+
+        - macOS — `/Applications/Pandia.app/Contents/MacOS/Pandia`
+        - Windows (PowerShell) — `& "$env:LOCALAPPDATA\Pandia\Pandia.exe"` (`.msi` installs to `C:\Program Files\Pandia\Pandia.exe`)
+        - Linux — `pandia` (`.deb`) or `./Pandia_*.AppImage`
+      render: shell
+
+  - type: textarea
+    id: sample
+    attributes:
+      label: The document that triggers it
+      description: |
+        Attach a file that reproduces it (drag it into this box), or describe it: size, extension, root type, depth, and anything unusual — very large integers, deep nesting, non-UTF-8 bytes, NDJSON records.
+
+        A reduced file that still reproduces beats the real one. Never attach anything confidential.
+
+        Pandia opens documents of any size, but whole-document edit, export, and validate are capped at 200 MB — mention it if you're above that line.
+      placeholder: 1.2 GB .jsonl, ~4M records, each an object with 30 keys including Snowflake IDs.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Workarounds you found, when it started, whether an earlier version worked.

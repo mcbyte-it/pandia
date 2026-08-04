@@ -1,0 +1,75 @@
+name: Feature request
+description: Suggest something Pandia should do.
+title: '[Feature]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Pandia is a focused JSON workbench, not a kitchen-sink tool — the strongest requests
+        name a concrete task it makes harder than it should be. Still half-formed? Open an
+        [Idea discussion](https://github.com/hendurhance/pandia/discussions/categories/ideas) instead.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before filing
+      options:
+        - label: I searched [existing issues](https://github.com/hendurhance/pandia/issues?q=is%3Aissue) and [discussions](https://github.com/hendurhance/pandia/discussions) for the same request.
+          required: true
+        - label: I checked the roadmap in the [README](https://github.com/hendurhance/pandia#roadmap) — it isn't already planned.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and where does Pandia get in the way today?
+      placeholder: I inspect API dumps where one array holds mixed record shapes, and Grid view only handles homogeneous arrays, so I fall back to Tree and lose the column overview.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What you'd like it to do
+      description: Be specific about the behaviour — where it lives in the UI, what it's called, what happens when you use it.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Tree view
+        - Code view
+        - Grid view
+        - Graph view
+        - Compare / diff
+        - Search, filter, and navigation
+        - Open, paste, and format detection
+        - Save, export, and file associations
+        - Type generation
+        - JSON Schema validation
+        - Performance and large files
+        - Settings, theming, and keyboard
+        - Other
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How you work around it now
+      description: Other tools, manual steps, or a Pandia feature that half-covers it. This tells us how much the gap actually costs.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Mockups, screenshots from other tools, sample JSON, prior art.
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd be willing to open a PR for this (see [CONTRIBUTING.md](https://github.com/hendurhance/pandia/blob/main/CONTRIBUTING.md)).
