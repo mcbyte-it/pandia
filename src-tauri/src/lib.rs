@@ -219,6 +219,7 @@ fn build_menu(
         .accelerator("CmdOrCtrl+Shift+[")
         .build(app)?;
 
+    #[cfg(target_os = "macos")]
     let file_menu = SubmenuBuilder::new(app, "File")
         .item(&new_tab)
         .item(&new_file)
@@ -232,6 +233,24 @@ fn build_menu(
         .item(&next_tab)
         .item(&prev_tab)
         .item(&close_tab)
+        .build()?;
+
+    #[cfg(not(target_os = "macos"))]
+    let file_menu = SubmenuBuilder::new(app, "File")
+        .item(&new_tab)
+        .item(&new_file)
+        .item(&open_file)
+        .item(&recent_files_menu)
+        .separator()
+        .item(&save_file)
+        .item(&save_as)
+        .item(&export_doc)
+        .separator()
+        .item(&next_tab)
+        .item(&prev_tab)
+        .item(&close_tab)
+        .separator()
+        .item(&PredefinedMenuItem::quit(app, Some("Exit"))?)
         .build()?;
 
     let undo = MenuItemBuilder::with_id("undo", "Undo")
@@ -345,8 +364,6 @@ fn build_menu(
         .separator()
         .item(&about)
         .item(&check_for_updates)
-        .separator()
-        .item(&PredefinedMenuItem::quit(app, Some("Exit"))?)
         .build()?;
 
     #[cfg(target_os = "macos")]
